@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Market Sentiment Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg1:#0a0e1a; --bg2:#121729; --bg3:#0d1224;
+  --card:rgba(255,255,255,0.045); --card-border:rgba(255,255,255,0.09);
+  --text:#e9edf5; --text-dim:#8b93a7;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+  --ind1:#6366f1; --ind2:#06b6d4; --ind3:#ec4899; --ind4:#8b5cf6; --ind5:#14b8a6;
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Inter',sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(99,102,241,0.14), transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(6,182,212,0.12), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(236,72,153,0.08), transparent 50%),
+    linear-gradient(160deg,var(--bg1),var(--bg2) 50%,var(--bg3));
+  color:var(--text);
+  min-height:100vh;
+  padding-bottom:40px;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--ind1),var(--ind2));border-radius:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+.app{max-width:1500px;margin:0 auto;padding:20px;}
+
+/* ---------- HEADER ---------- */
+header.top{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding:18px 26px;border-radius:20px;
+  background:linear-gradient(120deg,rgba(99,102,241,0.18),rgba(6,182,212,0.14),rgba(236,72,153,0.12));
+  border:1px solid var(--card-border);
+  backdrop-filter:blur(14px);
+  margin-bottom:18px;
+}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo .icon{
+  width:46px;height:46px;border-radius:14px;
+  background:linear-gradient(135deg,var(--ind1),var(--ind2));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 6px 20px rgba(99,102,241,0.5);
+}
+.logo h1{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;letter-spacing:.3px;}
+.logo p{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.head-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+#clock{font-family:'Poppins';font-weight:600;font-size:15px;color:#fff;}
+#clock small{display:block;font-size:11px;color:var(--text-dim);font-weight:400;text-align:right;}
+.mood-badge{
+  padding:9px 18px;border-radius:30px;font-weight:700;font-size:13px;letter-spacing:.4px;
+  display:flex;align-items:center;gap:8px;
+}
+.mood-bull{background:linear-gradient(90deg,rgba(34,197,94,0.25),rgba(34,197,94,0.08));color:#4ade80;border:1px solid rgba(74,222,128,0.4);}
+.mood-bear{background:linear-gradient(90deg,rgba(239,68,68,0.25),rgba(239,68,68,0.08));color:#f87171;border:1px solid rgba(248,113,113,0.4);}
+.mood-neutral{background:linear-gradient(90deg,rgba(245,158,11,0.25),rgba(245,158,11,0.08));color:#fbbf24;border:1px solid rgba(251,191,36,0.4);}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ---------- MARKET STATUS STRIP ---------- */
+.status-strip{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;
+}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  background:var(--card);border:1px solid var(--card-border);
+  padding:7px 14px;border-radius:20px;font-size:12.5px;color:var(--text-dim);
+  backdrop-filter:blur(8px);
+}
+.status-pill b{color:var(--text);font-weight:600;}
+.status-pill .sdot{width:7px;height:7px;border-radius:50%;}
+.open{background:var(--green);box-shadow:0 0 8px var(--green);}
+.closed{background:#555;}
+
+/* ---------- SECTION TITLES ---------- */
+.section{margin-bottom:30px;}
+.section h2{
+  font-family:'Poppins',sans-serif;font-size:17px;font-weight:600;
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;color:#fff;
+}
+.section h2 .bar{
+  width:5px;height:20px;border-radius:4px;
+  background:linear-gradient(var(--ind1),var(--ind2));
+  display:inline-block;
+}
+
+/* ---------- GRID / CARDS ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px;}
+.card{
+  position:relative;background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:14px 16px 10px;backdrop-filter:blur(12px);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s;
+  overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--ind1),var(--ind2),var(--ind3));
+}
+.card:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.18);}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;}
+.card-name{font-size:12.5px;color:var(--text-dim);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.badge.up{background:rgba(34,197,94,0.15);color:var(--green);}
+.badge.down{background:rgba(239,68,68,0.15);color:var(--red);}
+.card-value{font-family:'Poppins';font-size:21px;font-weight:700;color:#fff;margin-bottom:2px;}
+.card-change{font-size:12px;font-weight:600;margin-bottom:6px;}
+.card-change.up{color:var(--green);}
+.card-change.down{color:var(--red);}
+.spark-wrap{height:42px;margin-top:2px;}
+
+/* ---------- SENTIMENT GAUGES ---------- */
+.gauge-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:30px;}
+.gauge-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:20px;
+  padding:20px;text-align:center;backdrop-filter:blur(12px);position:relative;overflow:hidden;
+}
+.gauge-card::after{
+  content:'';position:absolute;inset:0;border-radius:20px;padding:1px;
+  background:linear-gradient(135deg,rgba(99,102,241,0.4),transparent 50%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite:exclude; pointer-events:none;
+}
+.gauge-card h3{font-family:'Poppins';font-size:14px;font-weight:600;color:#dcdfe8;margin-bottom:6px;}
+.gauge-card .sub{font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
+.gauge{width:210px;height:105px;position:relative;margin:14px auto 0;}
+.gauge-bg{
+  width:210px;height:105px;border-radius:105px 105px 0 0;overflow:hidden;
+  background:conic-gradient(from 270deg at 50% 100%,
+    #ef4444 0deg, #f97316 45deg, #eab308 90deg, #84cc16 135deg, #22c55e 180deg);
+  box-shadow:inset 0 0 20px rgba(0,0,0,0.4);
+}
+.gauge-needle{
+  position:absolute;bottom:0;left:50%;width:3px;height:88px;
+  background:linear-gradient(#fff,#c7c9d4);transform-origin:bottom center;
+  transform:translateX(-50%) rotate(-90deg);
+  border-radius:3px;transition:transform 1.2s cubic-bezier(.4,1.4,.6,1);
+  box-shadow:0 0 10px rgba(255,255,255,0.7);
+}
+.gauge-needle::after{
+  content:'';position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);
+  width:18px;height:18px;background:radial-gradient(circle,#fff,#9ca3af);border-radius:50%;
+  box-shadow:0 0 10px rgba(255,255,255,0.6);
+}
+.gauge-value{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);text-align:center;}
+.gauge-value b{font-family:'Poppins';font-size:24px;font-weight:800;color:#fff;display:block;}
+.gauge-value span{font-size:11.5px;font-weight:600;letter-spacing:.4px;}
+.gauge-scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);margin-top:14px;padding:0 6px;}
+
+/* ---------- FLOWS SECTION ---------- */
+.flows-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:20px;
+  padding:22px;backdrop-filter:blur(12px);
+}
+.flows-legend{display:flex;gap:18px;margin-bottom:10px;font-size:12.5px;color:var(--text-dim);}
+.flows-legend span{display:flex;align-items:center;gap:6px;}
+.dotlg{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.flow-stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;}
+.flow-stat{
+  flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+  border-radius:14px;padding:12px 16px;
+}
+.flow-stat .lab{font-size:11.5px;color:var(--text-dim);margin-bottom:4px;}
+.flow-stat .val{font-family:'Poppins';font-size:18px;font-weight:700;}
+
+/* ---------- FOOTER ---------- */
+footer{
+  text-align:center;color:var(--text-dim);font-size:11.5px;margin-top:20px;line-height:1.7;
+  padding-top:16px;border-top:1px solid var(--card-border);
+}
+footer b{color:#c7c9d4;}
+
+@media(max-width:600px){
+  header.top{flex-direction:column;align-items:flex-start;}
+  .head-right{width:100%;justify-content:space-between;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="top">
+    <div class="logo">
+      <div class="icon">📊</div>
+      <div>
+        <h1>Global Market Sentiment Tracker</h1>
+        <p>Indices · Commodities · Bonds · Currencies · Indian Markets — Live View</p>
+      </div>
+    </div>
+    <div class="head-right">
+      <div id="clock">--:--:-- <small>Last updated</small></div>
+      <div class="mood-badge mood-neutral" id="moodBadge"><span class="dot"></span> Calculating...</div>
+    </div>
+  </header>
+
+  <!-- MARKET STATUS -->
+  <div class="status-strip" id="statusStrip"></div>
+
+  <!-- SENTIMENT GAUGES -->
+  <div class="gauge-row">
+    <div class="gauge-card">
+      <h3>😱 Fear &amp; Greed Index</h3>
+      <div class="sub">Composite market emotion (0–100)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="fgNeedle"></div>
+        <div class="gauge-value"><b id="fgVal">--</b><span id="fgLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Fear</span><span>Neutral</span><span>Greed</span></div>
+    </div>
+    <div class="gauge-card">
+      <h3>⚡ India VIX</h3>
+      <div class="sub">Volatility / fear gauge (NSE)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="vixNeedle"></div>
+        <div class="gauge-value"><b id="vixVal">--</b><span id="vixLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+    </div>
+    <div class="gauge-card">
+      <h3>🎯 Nifty PCR Ratio</h3>
+      <div class="sub">Put/Call OI ratio (options sentiment)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="pcrNeedle"></div>
+        <div class="gauge-value"><b id="pcrVal">--</b><span id="pcrLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Bearish</span><span>Neutral</span><span>Bullish</span></div>
+    </div>
+    <div class="gauge-card">
+      <h3>🏦 FII/DII Net Pulse</h3>
+      <div class="sub">Today's institutional flow bias</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="flowNeedle"></div>
+        <div class="gauge-value"><b id="flowVal">--</b><span id="flowLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Selling</span><span>Flat</span><span>Buying</span></div>
+    </div>
+  </div>
+
+  <!-- INDIAN MARKETS -->
+  <div class="section">
+    <h2><span class="bar"></span>🇮🇳 Indian Markets — Spot &amp; Futures</h2>
+    <div class="grid" id="indianGrid"></div>
+  </div>
+
+  <!-- GLOBAL INDICES FUTURES -->
+  <div class="section">
+    <h2><span class="bar"></span>🌍 Global Indices Futures</h2>
+    <div class="grid" id="globalGrid"></div>
+  </div>
+
+  <!-- COMMODITIES -->
+  <div class="section">
+    <h2><span class="bar"></span>🛢️ Commodities</h2>
+    <div class="grid" id="commodityGrid"></div>
+  </div>
+
+  <!-- BOND YIELDS -->
+  <div class="section">
+    <h2><span class="bar"></span>📈 Global &amp; Indian Bond Yields</h2>
+    <div class="grid" id="bondGrid"></div>
+  </div>
+
+  <!-- CURRENCIES -->
+  <div class="section">
+    <h2><span class="bar"></span>💱 Currencies</h2>
+    <div class="grid" id="currencyGrid"></div>
+  </div>
+
+  <!-- FII / DII FLOWS -->
+  <div class="section">
+    <h2><span class="bar"></span>💰 FII / DII Activity (₹ Crore)</h2>
+    <div class="flows-card">
+      <div class="flows-legend">
+        <span><i class="dotlg" style="background:#6366f1"></i> FII Net</span>
+        <span><i class="dotlg" style="background:#ec4899"></i> DII Net</span>
+      </div>
+      <canvas id="flowsChart" height="90"></canvas>
+      <div class="flow-stats">
+        <div class="flow-stat"><div class="lab">FII Today</div><div class="val" id="fiiToday">--</div></div>
+        <div class="flow-stat"><div class="lab">DII Today</div><div class="val" id="diiToday">--</div></div>
+        <div class="flow-stat"><div class="lab">FII (Month)</div><div class="val" id="fiiMonth">--</div></div>
+        <div class="flow-stat"><div class="lab">DII (Month)</div><div class="val" id="diiMonth">--</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Disclaimer:</b> Values shown are simulated for demo/UI purposes and refresh automatically to mimic a live feed.<br>
+    To go fully live, connect this dashboard to a real data source (NSE India API, Yahoo Finance, TradingView widgets, or your broker API) inside <b>fetchLiveData()</b> in the script.<br>
+    Not investment advice · Built for illustrative purposes only.
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+   1. DATA — replace random-walk simulation with real API calls
+   ============================================================ */
+function rnd(min,max){return Math.random()*(max-min)+min;}
+
+let indianMarkets = [
+  {name:'GIFT Nifty', value:24350.50, unit:''},
+  {name:'Nifty 50 Spot', value:24280.15, unit:''},
+  {name:'Nifty 50 Futures', value:24312.75, unit:''},
+  {name:'Bank Nifty Spot', value:51200.60, unit:''},
+  {name:'Bank Nifty Futures', value:51255.40, unit:''},
+  {name:'Sensex', value:79850.35, unit:''},
+  {name:'Nifty Midcap 100', value:56800.20, unit:''},
+  {name:'Nifty Fin Services', value:23450.80, unit:''},
+];
+
+let globalIndices = [
+  {name:'Dow Jones Futures', value:43250.50, unit:''},
+  {name:'S&P 500 Futures', value:5875.25, unit:''},
+  {name:'Nasdaq 100 Futures', value:20650.75, unit:''},
+  {name:'FTSE 100', value:8250.40, unit:''},
+  {name:'DAX 40', value:19450.60, unit:''},
+  {name:'CAC 40', value:7480.30, unit:''},
+  {name:'Euro Stoxx 50', value:4950.20, unit:''},
+  {name:'Nikkei 225', value:39250.80, unit:''},
+  {name:'Hang Seng', value:19850.50, unit:''},
+  {name:'Shanghai Composite', value:3350.70, unit:''},
+  {name:'ASX 200', value:8150.90, unit:''},
+  {name:'KOSPI', value:2550.40, unit:''},
+];
+
+let commodities = [
+  {name:'Gold (Comex)', value:2650.40, unit:' $/oz'},
+  {name:'Silver (Comex)', value:31.25, unit:' $/oz'},
+  {name:'Crude Oil WTI', value:70.85, unit:' $/bbl'},
+  {name:'Brent Crude', value:74.30, unit:' $/bbl'},
+  {name:'Natural Gas', value:2.85, unit:' $/MMBtu'},
+  {name:'Copper', value:4.25, unit:' $/lb'},
+  {name:'MCX Gold', value:76500, unit:' ₹/10g'},
+  {name:'MCX Silver', value:91200, unit:' ₹/kg'},
+];
+
+let bonds = [
+  {name:'US 10Y Yield', value:4.28, unit:'%'},
+  {name:'US 2Y Yield', value:4.15, unit:'%'},
+  {name:'US 30Y Yield', value:4.55, unit:'%'},
+  {name:'German Bund 10Y', value:2.35, unit:'%'},
+  {name:'UK Gilt 10Y', value:4.45, unit:'%'},
+  {name:'Japan 10Y', value:1.05, unit:'%'},
+  {name:'India 10Y G-Sec', value:6.85, unit:'%'},
+  {name:'India 5Y G-Sec', value:6.65, unit:'%'},
+];
+
+let currencies = [
+  {name:'USD/INR', value:84.50, unit:''},
+  {name:'Dollar Index (DXY)', value:106.80, unit:''},
+  {name:'EUR/USD', value:1.0520, unit:''},
+  {name:'GBP/USD', value:1.2650, unit:''},
+  {name:'USD/JPY', value:154.20, unit:''},
+  {name:'USD/CNY', value:7.245, unit:''},
+];
+
+// attach change tracking + spark history to every item
+[indianMarkets, globalIndices, commodities, bonds, currencies].forEach(arr=>{
+  arr.forEach(it=>{
+    it.change = rnd(-1,1) * (it.value*0.004);
+    it.changePercent = (it.change/it.value)*100;
+    it.history = Array.from({length:20},()=> it.value * (1+rnd(-0.003,0.003)));
+  });
+});
+
+let sentiment = { fearGreed:55, indiaVix:14.2, pcr:0.92, flowBias:50 };
+
+let flowLabels = [];
+let fiiData = [], diiData = [];
+(function seedFlows(){
+  const today = new Date();
+  for(let i=9;i>=0;i--){
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    flowLabels.push(d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+    fiiData.push(Math.round(rnd(-2500,2500)));
+    diiData.push(Math.round(rnd(-800,3000)));
+  }
+})();
+
+/* ============================================================
+   2. UTIL
+   ============================================================ */
+function fmt(num,decimals=2){
+  return Number(num).toLocaleString('en-IN',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+}
+function trendClass(v){return v>=0?'up':'down';}
+function arrow(v){return v>=0?'▲':'▼';}
+
+/* ============================================================
+   3. RENDER CARD GRIDS + SPARKLINES
+   ============================================================ */
+let sparkCharts = {};
+
+function renderGrid(containerId, arr, prefix){
+  const container = document.getElementById(containerId);
+  container.innerHTML='';
+  arr.forEach((item, idx)=>{
+    const id = prefix+'-'+idx;
+    const tc = trendClass(item.change);
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <div class="card-head">
+        <span class="card-name">${item.name}</span>
+        <span class="badge ${tc}">${arrow(item.change)} ${Math.abs(item.changePercent).toFixed(2)}%</span>
+      </div>
+      <div class="card-value">${fmt(item.value, item.unit==='%'||item.value<20?2:2)}${item.unit}</div>
+      <div class="card-change ${tc}">${item.change>=0?'+':''}${fmt(item.change,2)} today</div>
+      <div class="spark-wrap"><canvas id="${id}"></canvas></div>
+    `;
+    container.appendChild(card);
+    drawSpark(id, item.history, tc);
+  });
+}
+
+function drawSpark(id, data, tc){
+  const ctx = document.getElementById(id).getContext('2d');
+  const color = tc==='up' ? '#22c55e' : '#ef4444';
+  const gradient = ctx.createLinearGradient(0,0,0,42);
+  gradient.addColorStop(0, tc==='up' ? 'rgba(34,197,94,0.35)':'rgba(239,68,68,0.35)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  if(sparkCharts[id]) sparkCharts[id].destroy();
+  sparkCharts[id] = new Chart(ctx,{
+    type:'line',
+    data:{ labels:data.map((_,i)=>i), datasets:[{
+      data:data, borderColor:color, borderWidth:2, pointRadius:0,
+      fill:true, backgroundColor:gradient, tension:.35
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{enabled:false}},
+      scales:{x:{display:false}, y:{display:false}},
+      animation:{duration:400}
+    }
+  });
+}
+
+/* ============================================================
+   4. GAUGES
+   ============================================================ */
+function setGauge(needleId, valId, labelId, value, min, max, labels){
+  const pct = Math.min(1, Math.max(0, (value-min)/(max-min)));
+  const deg = -90 + pct*180;
+  document.getElementById(needleId).style.transform = `translateX(-50%) rotate(${deg}deg)`;
+  document.getElementById(valId).textContent = value;
+  let lbl, color;
+  if(pct<0.34){lbl=labels[0]; color='#f87171';}
+  else if(pct<0.66){lbl=labels[1]; color='#fbbf24';}
+  else {lbl=labels[2]; color='#4ade80';}
+  const l = document.getElementById(labelId);
+  l.textContent = lbl; l.style.color = color;
+}
+
+function updateGauges(){
+  setGauge('fgNeedle','fgVal','fgLabel', Math.round(sentiment.fearGreed), 0, 100, ['Fear','Neutral','Greed']);
+  setGauge('vixNeedle','vixVal','vixLabel', sentiment.indiaVix.toFixed(1), 8, 30, ['Calm','Moderate','Panic']);
+  setGauge('pcrNeedle','pcrVal','pcrLabel', sentiment.pcr.toFixed(2), 0.5, 1.5, ['Bearish','Neutral','Bullish']);
+  setGauge('flowNeedle','flowVal','flowLabel', Math.round(sentiment.flowBias), 0, 100, ['Selling','Flat','Buying']);
+}
+
+/* ============================================================
+   5. FLOWS CHART
+   ============================================================ */
+let flowsChartInstance;
+function renderFlowsChart(){
+  const ctx = document.getElementById('flowsChart').getContext('2d');
+  if(flowsChartInstance) flowsChartInstance.destroy();
+  flowsChartInstance = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: flowLabels,
+      datasets:[
+        {label:'FII Net', data:fiiData, backgroundColor: fiiData.map(v=>v>=0?'#6366f1':'#4338ca'), borderRadius:6},
+        {label:'DII Net', data:diiData, backgroundColor: diiData.map(v=>v>=0?'#ec4899':'#9d174d'), borderRadius:6}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:'#8b93a7', font:{size:11}} },
+        y:{ grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8b93a7', font:{size:11}} }
+      }
+    }
+  });
+
+  document.getElementById('fiiToday').textContent = (fiiData.at(-1)>=0?'+':'')+fmt(fiiData.at(-1),0)+' Cr';
+  document.getElementById('fiiToday').style.color = fiiData.at(-1)>=0?'#22c55e':'#ef4444';
+  document.getElementById('diiToday').textContent = (diiData.at(-1)>=0?'+':'')+fmt(diiData.at(-1),0)+' Cr';
+  document.getElementById('diiToday').style.color = diiData.at(-1)>=0?'#22c55e':'#ef4444';
+  const fiiSum = fiiData.reduce((a,b)=>a+b,0), diiSum = diiData.reduce((a,b)=>a+b,0);
+  document.getElementById('fiiMonth').textContent = (fiiSum>=0?'+':'')+fmt(fiiSum,0)+' Cr';
+  document.getElementById('fiiMonth').style.color = fiiSum>=0?'#22c55e':'#ef4444';
+  document.getElementById('diiMonth').textContent = (diiSum>=0?'+':'')+fmt(diiSum,0)+' Cr';
+  document.getElementById('diiMonth').style.color = diiSum>=0?'#22c55e':'#ef4444';
+}
+
+/* ============================================================
+   6. MARKET STATUS STRIP
+   ============================================================ */
+const marketsTZ = [
+  {name:'India (NSE)', openUTC:3.75, closeUTC:10.0},
+  {name:'UK (LSE)', openUTC:8.0, closeUTC:16.5},
+  {name:'US (NYSE)', openUTC:14.5, closeUTC:21.0},
+  {name:'Japan (TSE)', openUTC:0.0, closeUTC:6.0},
+  {name:'Hong Kong', openUTC:1.5, closeUTC:8.0},
+];
+function renderStatusStrip(){
+  const now = new Date();
+  const day = now.getUTCDay();
+  const hourFrac = now.getUTCHours() + now.getUTCMinutes()/60;
+  const strip = document.getElementById('statusStrip');
+  strip.innerHTML='';
+  marketsTZ.forEach(m=>{
+    const weekday = day>=1 && day<=5;
+    const open = weekday && hourFrac>=m.openUTC && hourFrac<m.closeUTC;
+    const pill = document.createElement('div');
+    pill.className='status-pill';
+    pill.innerHTML = `<span class="sdot ${open?'open':'closed'}"></span> ${m.name}: <b>${open?'OPEN':'CLOSED'}</b>`;
+    strip.appendChild(pill);
+  });
+}
+
+/* ============================================================
+   7. OVERALL MOOD BADGE
+   ============================================================ */
+function updateMood(){
+  const all = [...indianMarkets, ...globalIndices, ...commodities, ...currencies];
+  const upCount = all.filter(x=>x.change>=0).length;
+  const ratio = upCount/all.length;
+  const badge = document.getElementById('moodBadge');
+  if(ratio>0.6){
+    badge.className='mood-badge mood-bull';
+    badge.innerHTML = `<span class="dot"></span> BULLISH — ${Math.round(ratio*100)}% Assets Up`;
+  } else if(ratio<0.4){
+    badge.className='mood-badge mood-bear';
+    badge.innerHTML = `<span class="dot"></span> BEARISH — ${Math.round((1-ratio)*100)}% Assets Down`;
+  } else {
+    badge.className='mood-badge mood-neutral';
+    badge.innerHTML = `<span class="dot"></span> NEUTRAL / MIXED SENTIMENT`;
+  }
+}
+
+/* ============================================================
+   8. CLOCK
+   ============================================================ */
+function tickClock(){
+  const now = new Date();
+  document.getElementById('clock').innerHTML =
+    now.toLocaleTimeString('en-IN',{hour12:false}) + ' IST<small>Last updated: '+now.toLocaleTimeString('en-IN')+'</small>';
+}
+
+/* ============================================================
+   9. LIVE SIMULATION LOOP  →  replace with real fetchLiveData()
+   ============================================================ */
+function simulateTick(arr){
+  arr.forEach(it=>{
+    const delta = it.value * rnd(-0.0015,0.0015);
+    it.value = +(it.value + delta).toFixed(4);
+    it.change = it.change + delta;
+    it.changePercent = (it.change/it.value)*100;
+    it.history.push(it.value);
+    if(it.history.length>20) it.history.shift();
+  });
+}
+
+function fetchLiveData(){
+  /* 🔌 CONNECT REAL DATA HERE
+     e.g. fetch('/api/nse-quotes').then(r=>r.json()).then(data=>{ ...update arrays... });
+     For now we simulate a random walk for demo purposes: */
+  simulateTick(indianMarkets);
+  simulateTick(globalIndices);
+  simulateTick(commodities);
+  simulateTick(bonds);
+  simulateTick(currencies);
+
+  sentiment.fearGreed = Math.min(100, Math.max(0, sentiment.fearGreed + rnd(-3,3)));
+  sentiment.indiaVix = Math.min(30, Math.max(8, sentiment.indiaVix + rnd(-0.3,0.3)));
+  sentiment.pcr = Math.min(1.5, Math.max(0.5, sentiment.pcr + rnd(-0.03,0.03)));
+  sentiment.flowBias = Math.min(100, Math.max(0, sentiment.flowBias + rnd(-4,4)));
+
+  renderAll();
+}
+
+function renderAll(){
+  renderGrid('indianGrid', indianMarkets, 'ind');
+  renderGrid('globalGrid', globalIndices, 'glb');
+  renderGrid('commodityGrid', commodities, 'com');
+  renderGrid('bondGrid', bonds, 'bnd');
+  renderGrid('currencyGrid', currencies, 'cur');
+  updateGauges();
+  updateMood();
+  renderStatusStrip();
+  tickClock();
+}
+
+/* ============================================================
+   10. INIT
+   ============================================================ */
+renderAll();
+renderFlowsChart();
+setInterval(tickClock, 1000);
+setInterval(fetchLiveData, 4000);   // simulate a live feed every 4s
+</script>
+</body>
+</html>
