@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Market Sentiment Tracker — Live</title>
+<meta name="description" content="Live global market sentiment dashboard: Indian & global indices futures, commodities, US Treasury yields, currencies, CNN Fear & Greed and volatility gauges. Auto-refreshing live feeds.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg1:#0a0e1a; --bg2:#121729; --bg3:#0d1224;
+  --card:rgba(255,255,255,0.045); --card-border:rgba(255,255,255,0.09);
+  --text:#e9edf5; --text-dim:#8b93a7;
+  --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+  --ind1:#6366f1; --ind2:#06b6d4; --ind3:#ec4899; --ind4:#8b5cf6; --ind5:#14b8a6;
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Inter',sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(99,102,241,0.14), transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(6,182,212,0.12), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(236,72,153,0.08), transparent 50%),
+    linear-gradient(160deg,var(--bg1),var(--bg2) 50%,var(--bg3));
+  color:var(--text);
+  min-height:100vh;
+  padding-bottom:40px;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--ind1),var(--ind2));border-radius:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+.app{max-width:1500px;margin:0 auto;padding:20px;}
+
+/* ---------- HEADER ---------- */
+header.top{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+  padding:18px 26px;border-radius:20px;
+  background:linear-gradient(120deg,rgba(99,102,241,0.18),rgba(6,182,212,0.14),rgba(236,72,153,0.12));
+  border:1px solid var(--card-border);
+  backdrop-filter:blur(14px);
+  margin-bottom:14px;
+}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo .icon{
+  width:46px;height:46px;border-radius:14px;
+  background:linear-gradient(135deg,var(--ind1),var(--ind2));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 6px 20px rgba(99,102,241,0.5);
+}
+.logo h1{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;letter-spacing:.3px;}
+.logo p{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.head-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+#clock{font-family:'Poppins';font-weight:600;font-size:15px;color:#fff;}
+#clock small{display:block;font-size:11px;color:var(--text-dim);font-weight:400;text-align:right;}
+.mood-badge{
+  padding:9px 18px;border-radius:30px;font-weight:700;font-size:13px;letter-spacing:.4px;
+  display:flex;align-items:center;gap:8px;
+}
+.mood-bull{background:linear-gradient(90deg,rgba(34,197,94,0.25),rgba(34,197,94,0.08));color:#4ade80;border:1px solid rgba(74,222,128,0.4);}
+.mood-bear{background:linear-gradient(90deg,rgba(239,68,68,0.25),rgba(239,68,68,0.08));color:#f87171;border:1px solid rgba(248,113,113,0.4);}
+.mood-neutral{background:linear-gradient(90deg,rgba(245,158,11,0.25),rgba(245,158,11,0.08));color:#fbbf24;border:1px solid rgba(251,191,36,0.4);}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ---------- FEED STATUS CHIP ---------- */
+.feed-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 15px;border-radius:30px;font-size:12px;font-weight:700;letter-spacing:.4px;
+}
+.feed-chip .dot{width:7px;height:7px;}
+.feed-ok{background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.35);}
+.feed-warn{background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);}
+.feed-down{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.35);}
+
+/* ---------- TRADINGVIEW TAPE ---------- */
+.tv-wrap{margin-bottom:16px;border-radius:14px;overflow:hidden;border:1px solid var(--card-border);background:rgba(10,14,26,0.55);}
+
+/* ---------- MARKET STATUS STRIP ---------- */
+.status-strip{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;
+}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  background:var(--card);border:1px solid var(--card-border);
+  padding:7px 14px;border-radius:20px;font-size:12.5px;color:var(--text-dim);
+  backdrop-filter:blur(8px);
+}
+.status-pill b{color:var(--text);font-weight:600;}
+.status-pill .sdot{width:7px;height:7px;border-radius:50%;}
+.open{background:var(--green);box-shadow:0 0 8px var(--green);}
+.closed{background:#555;}
+
+/* ---------- SECTION TITLES ---------- */
+.section{margin-bottom:30px;}
+.section h2{
+  font-family:'Poppins',sans-serif;font-size:17px;font-weight:600;
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;color:#fff;
+}
+.section h2 .bar{
+  width:5px;height:20px;border-radius:4px;
+  background:linear-gradient(var(--ind1),var(--ind2));
+  display:inline-block;
+}
+.section h2 small{font-size:11px;color:var(--text-dim);font-weight:400;margin-left:2px;}
+
+/* ---------- GRID / CARDS ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px;}
+.card{
+  position:relative;background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius);padding:14px 16px 10px;backdrop-filter:blur(12px);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s;
+  overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--ind1),var(--ind2),var(--ind3));
+}
+.card:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.18);}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;}
+.card-name{font-size:12.5px;color:var(--text-dim);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.badge.up{background:rgba(34,197,94,0.15);color:var(--green);}
+.badge.down{background:rgba(239,68,68,0.15);color:var(--red);}
+.badge.flat{background:rgba(139,147,167,0.15);color:var(--text-dim);}
+.card-value{font-family:'Poppins';font-size:21px;font-weight:700;color:#fff;margin-bottom:2px;}
+.card.stale .card-value{color:var(--amber);}
+.card-change{font-size:12px;font-weight:600;margin-bottom:6px;}
+.card-change.up{color:var(--green);}
+.card-change.down{color:var(--red);}
+.card-change.na{color:var(--text-dim);}
+.spark-wrap{height:42px;margin-top:2px;}
+.card-src{position:absolute;right:10px;bottom:8px;font-size:9px;color:rgba(139,147,167,0.55);letter-spacing:.3px;}
+
+/* ---------- SENTIMENT GAUGES ---------- */
+.gauge-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:30px;}
+.gauge-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:20px;
+  padding:20px;text-align:center;backdrop-filter:blur(12px);position:relative;overflow:hidden;
+}
+.gauge-card::after{
+  content:'';position:absolute;inset:0;border-radius:20px;padding:1px;
+  background:linear-gradient(135deg,rgba(99,102,241,0.4),transparent 50%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite:exclude; pointer-events:none;
+}
+.gauge-card h3{font-family:'Poppins';font-size:14px;font-weight:600;color:#dcdfe8;margin-bottom:6px;}
+.gauge-card .sub{font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
+.gauge{width:210px;height:105px;position:relative;margin:14px auto 0;}
+.gauge-bg{
+  width:210px;height:105px;border-radius:105px 105px 0 0;overflow:hidden;
+  background:conic-gradient(from 270deg at 50% 100%,
+    #ef4444 0deg, #f97316 45deg, #eab308 90deg, #84cc16 135deg, #22c55e 180deg);
+  box-shadow:inset 0 0 20px rgba(0,0,0,0.4);
+}
+.gauge-needle{
+  position:absolute;bottom:0;left:50%;width:3px;height:88px;
+  background:linear-gradient(#fff,#c7c9d4);transform-origin:bottom center;
+  transform:translateX(-50%) rotate(-90deg);
+  border-radius:3px;transition:transform 1.2s cubic-bezier(.4,1.4,.6,1);
+  box-shadow:0 0 10px rgba(255,255,255,0.7);
+}
+.gauge-needle::after{
+  content:'';position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);
+  width:18px;height:18px;background:radial-gradient(circle,#fff,#9ca3af);border-radius:50%;
+  box-shadow:0 0 10px rgba(255,255,255,0.6);
+}
+.gauge-value{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);text-align:center;}
+.gauge-value b{font-family:'Poppins';font-size:24px;font-weight:800;color:#fff;display:block;}
+.gauge-value span{font-size:11.5px;font-weight:600;letter-spacing:.4px;}
+.gauge-scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);margin-top:14px;padding:0 6px;}
+
+/* ---------- SENTIMENT HISTORY CARD ---------- */
+.flows-card{
+  background:var(--card);border:1px solid var(--card-border);border-radius:20px;
+  padding:22px;backdrop-filter:blur(12px);
+}
+.flows-legend{display:flex;gap:18px;margin-bottom:10px;font-size:12.5px;color:var(--text-dim);flex-wrap:wrap;}
+.flows-legend span{display:flex;align-items:center;gap:6px;}
+.dotlg{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.flow-stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;}
+.flow-stat{
+  flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+  border-radius:14px;padding:12px 16px;
+}
+.flow-stat .lab{font-size:11.5px;color:var(--text-dim);margin-bottom:4px;}
+.flow-stat .val{font-family:'Poppins';font-size:18px;font-weight:700;}
+.src-note{font-size:11px;color:var(--text-dim);margin-top:14px;}
+
+/* ---------- FOOTER ---------- */
+footer{
+  text-align:center;color:var(--text-dim);font-size:11.5px;margin-top:20px;line-height:1.8;
+  padding-top:16px;border-top:1px solid var(--card-border);
+}
+footer b{color:#c7c9d4;}
+footer a{color:var(--ind2);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+
+@media(max-width:600px){
+  header.top{flex-direction:column;align-items:flex-start;}
+  .head-right{width:100%;justify-content:space-between;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="top">
+    <div class="logo">
+      <div class="icon">📊</div>
+      <div>
+        <h1>Global Market Sentiment Tracker</h1>
+        <p>Indices · Commodities · Bonds · Currencies — Live Data Feeds</p>
+      </div>
+    </div>
+    <div class="head-right">
+      <div id="clock">--:--:-- <small>waiting for first live feed…</small></div>
+      <div class="feed-chip feed-down" id="feedStatus"><span class="dot"></span> CONNECTING…</div>
+      <div class="mood-badge mood-neutral" id="moodBadge"><span class="dot"></span> Connecting…</div>
+    </div>
+  </header>
+
+  <!-- TRADINGVIEW LIVE TICKER TAPE (independent live redundancy) -->
+  <div class="tv-wrap">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          { "proName": "NSE:NIFTY",     "title": "Nifty 50" },
+          { "proName": "NSE:NIFTY_BANK","title": "Bank Nifty" },
+          { "proName": "BSE:SENSEX",    "title": "Sensex" },
+          { "proName": "FOREXCOM:USDINR","title": "USD/INR" },
+          { "proName": "TVC:GOLD",      "title": "Gold" },
+          { "proName": "TVC:USOIL",     "title": "WTI Crude" },
+          { "proName": "SP:SPX",        "title": "S&P 500" },
+          { "proName": "NASDAQ:NDX",    "title": "Nasdaq 100" },
+          { "proName": "TVC:DXY",       "title": "Dollar Index" }
+        ],
+        "showSymbolLogo": true,
+        "colorTheme": "dark",
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "fontFamily": "Inter, sans-serif"
+      }
+      </script>
+    </div>
+  </div>
+
+  <!-- MARKET STATUS -->
+  <div class="status-strip" id="statusStrip"></div>
+
+  <!-- SENTIMENT GAUGES -->
+  <div class="gauge-row">
+    <div class="gauge-card">
+      <h3>😱 Fear &amp; Greed Index</h3>
+      <div class="sub" id="fgSub">CNN Business composite (0–100)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="fgNeedle"></div>
+        <div class="gauge-value"><b id="fgVal">--</b><span id="fgLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Fear</span><span>Neutral</span><span>Greed</span></div>
+    </div>
+    <div class="gauge-card">
+      <h3>⚡ India VIX</h3>
+      <div class="sub">NSE volatility / fear gauge (live)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="vixNeedle"></div>
+        <div class="gauge-value"><b id="vixVal">--</b><span id="vixLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+    </div>
+    <div class="gauge-card">
+      <h3>🌪️ CBOE VIX (US)</h3>
+      <div class="sub">S&amp;P 500 volatility index (live)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="uvixNeedle"></div>
+        <div class="gauge-value"><b id="uvixVal">--</b><span id="uvixLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+    </div>
+    <div class="gauge-card">
+      <h3>🌐 Market Breadth</h3>
+      <div class="sub">% of tracked assets in the green (live)</div>
+      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="breadthNeedle"></div>
+        <div class="gauge-value"><b id="breadthVal">--</b><span id="breadthLabel">--</span></div></div>
+      <div class="gauge-scale"><span>Mostly Down</span><span>Mixed</span><span>Mostly Up</span></div>
+    </div>
+  </div>
+
+  <!-- INDIAN MARKETS -->
+  <div class="section">
+    <h2><span class="bar"></span>🇮🇳 Indian Markets <small>· NSE / BSE live</small></h2>
+    <div class="grid" id="indianGrid"></div>
+  </div>
+
+  <!-- GLOBAL INDICES FUTURES -->
+  <div class="section">
+    <h2><span class="bar"></span>🌍 Global Indices &amp; Futures <small>· live</small></h2>
+    <div class="grid" id="globalGrid"></div>
+  </div>
+
+  <!-- COMMODITIES -->
+  <div class="section">
+    <h2><span class="bar"></span>🛢️ Commodities <small>· live</small></h2>
+    <div class="grid" id="commodityGrid"></div>
+  </div>
+
+  <!-- BOND YIELDS -->
+  <div class="section">
+    <h2><span class="bar"></span>📈 US Treasury Yields <small>· live (CBOE/Yahoo)</small></h2>
+    <div class="grid" id="bondGrid"></div>
+  </div>
+
+  <!-- CURRENCIES -->
+  <div class="section">
+    <h2><span class="bar"></span>💱 Currencies <small>· live · ECB reference fallback</small></h2>
+    <div class="grid" id="currencyGrid"></div>
+  </div>
+
+  <!-- SENTIMENT HISTORY -->
+  <div class="section">
+    <h2><span class="bar"></span>🧭 Fear &amp; Greed — Sentiment History <small>· CNN Business daily data</small></h2>
+    <div class="flows-card">
+      <div class="flows-legend">
+        <span><i class="dotlg" style="background:#22c55e"></i> Greed (≥ 55)</span>
+        <span><i class="dotlg" style="background:#f59e0b"></i> Neutral (45–55)</span>
+        <span><i class="dotlg" style="background:#ef4444"></i> Fear (&lt; 45)</span>
+      </div>
+      <canvas id="fgChart" height="90"></canvas>
+      <div class="flow-stats">
+        <div class="flow-stat"><div class="lab">Today</div><div class="val" id="fgToday">--</div></div>
+        <div class="flow-stat"><div class="lab">Previous Close</div><div class="val" id="fgPrev">--</div></div>
+        <div class="flow-stat"><div class="lab">1 Week Ago</div><div class="val" id="fg1w">--</div></div>
+        <div class="flow-stat"><div class="lab">1 Month Ago</div><div class="val" id="fg1m">--</div></div>
+      </div>
+      <div class="src-note" id="fgSource">Fetching live Fear &amp; Greed data…</div>
+    </div>
+  </div>
+
+  <footer>
+    <b>About the live data:</b> Quotes refresh automatically every 30&nbsp;s from
+    <a href="https://finance.yahoo.com" target="_blank" rel="noopener">Yahoo Finance</a> public endpoints
+    (some exchanges delayed up to 15&nbsp;min) · Fear &amp; Greed from
+    <a href="https://edition.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener">CNN Business</a> ·
+    FX reference fallback from <a href="https://frankfurter.dev" target="_blank" rel="noopener">ECB / Frankfurter</a> ·
+    ticker tape by <a href="https://tradingview.com" target="_blank" rel="noopener">TradingView</a>.<br>
+    If a feed can't be reached directly from the browser, the page automatically retries through public CORS relays
+    and flags any stale values in <b>amber</b> — no simulated numbers are ever shown.<br>
+    <b>Note:</b> FII/DII cash flows and Nifty option-chain PCR are published by NSE through endpoints that block
+    browser access — restoring them needs a tiny server-side proxy/broker API.<br>
+    Not investment advice · For information &amp; education only.
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+   1. LIVE DATA CONFIG — symbols on Yahoo Finance
+   ============================================================ */
+const DEF = {
+  /* Indian markets */
+  '^NSEI'      : {name:'Nifty 50',             group:'indian',    unit:'',      dec:2},
+  '^NSEBANK'   : {name:'Bank Nifty',           group:'indian',    unit:'',      dec:2},
+  '^BSESN'     : {name:'Sensex',               group:'indian',    unit:'',      dec:2},
+  '^NSEMDCP50' : {name:'Nifty Midcap 50',      group:'indian',    unit:'',      dec:2},
+  '^CNXFIN'    : {name:'Nifty Fin Services',   group:'indian',    unit:'',      dec:2},
+  '^CNXIT'     : {name:'Nifty IT',             group:'indian',    unit:'',      dec:2},
+  'RELIANCE.NS': {name:'Reliance Industries',  group:'indian',    unit:' ₹',    dec:2},
+  'HDFCBANK.NS': {name:'HDFC Bank',            group:'indian',    unit:' ₹',    dec:2},
+  'TCS.NS'     : {name:'TCS',                  group:'indian',    unit:' ₹',    dec:2},
+  'INFY.NS'    : {name:'Infosys',              group:'indian',    unit:' ₹',    dec:2},
+  /* Global indices & futures */
+  'ES=F'       : {name:'S&P 500 Futures',      group:'global',    unit:'',      dec:2},
+  'NQ=F'       : {name:'Nasdaq 100 Futures',   group:'global',    unit:'',      dec:2},
+  'YM=F'       : {name:'Dow Jones Futures',    group:'global',    unit:'',      dec:0},
+  'RTY=F'      : {name:'Russell 2000 Fut.',    group:'global',    unit:'',      dec:2},
+  '^FTSE'      : {name:'FTSE 100',             group:'global',    unit:'',      dec:2},
+  '^GDAXI'     : {name:'DAX 40',               group:'global',    unit:'',      dec:2},
+  '^FCHI'      : {name:'CAC 40',               group:'global',    unit:'',      dec:2},
+  '^STOXX50E'  : {name:'Euro Stoxx 50',        group:'global',    unit:'',      dec:2},
+  '^N225'      : {name:'Nikkei 225',           group:'global',    unit:'',      dec:2},
+  '^HSI'       : {name:'Hang Seng',            group:'global',    unit:'',      dec:2},
+  '000001.SS'  : {name:'Shanghai Composite',   group:'global',    unit:'',      dec:2},
+  '^AXJO'      : {name:'ASX 200',              group:'global',    unit:'',      dec:2},
+  '^KS11'      : {name:'KOSPI',                group:'global',    unit:'',      dec:2},
+  /* Commodities */
+  'GC=F'       : {name:'Gold (COMEX)',         group:'commodity', unit:' $/oz',   dec:2},
+  'SI=F'       : {name:'Silver (COMEX)',       group:'commodity', unit:' $/oz',   dec:2},
+  'CL=F'       : {name:'Crude Oil WTI',        group:'commodity', unit:' $/bbl',  dec:2},
+  'BZ=F'       : {name:'Brent Crude',          group:'commodity', unit:' $/bbl',  dec:2},
+  'NG=F'       : {name:'Natural Gas',          group:'commodity', unit:' $/MMBtu',dec:3},
+  'HG=F'       : {name:'Copper',               group:'commodity', unit:' $/lb',   dec:3},
+  'PL=F'       : {name:'Platinum',             group:'commodity', unit:' $/oz',   dec:2},
+  'BTC-USD'    : {name:'Bitcoin',              group:'commodity', unit:' $',      dec:0},
+  /* Bond yields */
+  '^IRX'       : {name:'US T-Bill 13W',        group:'bond',      unit:'%',     dec:3},
+  '^FVX'       : {name:'US Treasury 5Y',       group:'bond',      unit:'%',     dec:3},
+  '^TNX'       : {name:'US Treasury 10Y',      group:'bond',      unit:'%',     dec:3},
+  '^TYX'       : {name:'US Treasury 30Y',      group:'bond',      unit:'%',     dec:3},
+  /* Currencies */
+  'INR=X'      : {name:'USD/INR',              group:'currency',  unit:'',      dec:4},
+  'DX-Y.NYB'   : {name:'Dollar Index (DXY)',   group:'currency',  unit:'',      dec:3},
+  'EURUSD=X'   : {name:'EUR/USD',              group:'currency',  unit:'',      dec:4},
+  'GBPUSD=X'   : {name:'GBP/USD',              group:'currency',  unit:'',      dec:4},
+  'USDJPY=X'   : {name:'USD/JPY',              group:'currency',  unit:'',      dec:3},
+  'USDCNY=X'   : {name:'USD/CNY',              group:'currency',  unit:'',      dec:4},
+  /* Gauge-only feeds (no card, rendered into the gauge row) */
+  '^INDIAVIX'  : {name:'India VIX',            group:'gauge'},
+  '^VIX'       : {name:'CBOE VIX',             group:'gauge'},
+};
+
+/* Yahoo spark endpoint: max 20 symbols per call → three batched calls cover everything.
+   Each response carries: live price, previous close (→ change %) and intraday closes (→ sparkline). */
+const BATCHES = [
+  ['^NSEI','^NSEBANK','^BSESN','^NSEMDCP50','^CNXFIN','^CNXIT','RELIANCE.NS','HDFCBANK.NS','TCS.NS','INFY.NS','^INDIAVIX','^VIX'],
+  ['ES=F','NQ=F','YM=F','RTY=F','^FTSE','^GDAXI','^FCHI','^STOXX50E','^N225','^HSI','000001.SS','^AXJO','^KS11'],
+  ['GC=F','SI=F','CL=F','BZ=F','NG=F','HG=F','PL=F','BTC-USD','INR=X','DX-Y.NYB','EURUSD=X','GBPUSD=X','USDJPY=X','USDCNY=X','^IRX','^FVX','^TNX','^TYX'],
+];
+
+const ITEMS = {};   // symbol → live state {value, prev, change, pct, hist[], updated, src}
+let lastQuotesAt = 0;
+let fg = null;      // fear & greed {score, rating, prev, w1, m1, hist[], src, updated}
+
+/* ============================================================
+   2. TRANSPORT — direct first, then public CORS relays
+      (sticky last-good relay per feed; never fabricates data)
+   ============================================================ */
+const TRANSPORTS = [
+  {name:'direct',    wrap:u=>u},
+  {name:'allorigins',wrap:u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
+  {name:'codetabs',  wrap:u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)},
+  {name:'corslol',   wrap:u=>'https://api.cors.lol/?url='+encodeURIComponent(u)},
+  {name:'workers',   wrap:u=>'https://test.cors.workers.dev/?'+u},
+  {name:'corsproxy', wrap:u=>'https://corsproxy.io/?url='+encodeURIComponent(u)},
+  {name:'yahoo-q2',  wrap:u=>u.replace('query1.','query2.')},
+];
+const stickyRelay = {};   // feedKey → transport name
+const inFlight = {};
+
+async function fetchJSON(url, feedKey, timeoutMs = 12000){
+  if (inFlight[feedKey]) return null;
+  inFlight[feedKey] = true;
+  try{
+    const order = [...TRANSPORTS].sort((a,b)=>{
+      const sa = stickyRelay[feedKey]===a.name ? -1 : 0;
+      const sb = stickyRelay[feedKey]===b.name ? -1 : 0;
+      return sa-sb;
+    });
+    for(const t of order){
+      try{
+        const ctrl = new AbortController();
+        const timer = setTimeout(()=>ctrl.abort(), timeoutMs);
+        const res = await fetch(t.wrap(url), {signal:ctrl.signal, cache:'no-store'});
+        clearTimeout(timer);
+        if(!res.ok) continue;
+        const data = await res.json();
+        if(data && typeof data === 'object'){
+          stickyRelay[feedKey] = t.name;      // remember what worked
+          return data;
+        }
+      }catch(e){ /* try next relay */ }
+    }
+    return null;
+  } finally { inFlight[feedKey] = false; }
+}
+
+const yahooSparkURL = syms =>
+  'https://query1.finance.yahoo.com/v7/finance/spark?symbols=' +
+  syms.map(encodeURIComponent).join(',') + '&range=1d&interval=5m';
+
+/* ============================================================
+   3. UTIL
+   ============================================================ */
+function fmt(num, decimals=2){
+  return Number(num).toLocaleString('en-IN',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+}
+function trendClass(v){ return v>0 ? 'up' : (v<0 ? 'down' : 'flat'); }
+function arrow(v){ return v>0 ? '▲' : (v<0 ? '▼' : '■'); }
+const STALE_MS = 150000;   // 2.5 min without an update → amber
+
+/* ============================================================
+   4. LIVE FEEDS
+   ============================================================ */
+async function refreshQuotes(){
+  const responses = await Promise.all(BATCHES.map((b,i)=>fetchJSON(yahooSparkURL(b), 'quotes'+i)));
+  let symbolsUpdated = 0;
+  responses.forEach(rsp=>{
+    const results = rsp && rsp.spark && Array.isArray(rsp.spark.result) ? rsp.spark.result : null;
+    if(!results) return;
+    results.forEach(s=>{
+      const def = DEF[s.symbol];
+      const resp = s.response && s.response[0];
+      if(!def || !resp) return;
+      const meta = resp.meta || {};
+      const price = Number(meta.regularMarketPrice);
+      if(!isFinite(price) || price<=0) return;
+      const prev = Number(meta.previousClose ?? meta.chartPreviousClose);
+      const closes = (resp.indicators && resp.indicators.quote && resp.indicators.quote[0] && resp.indicators.quote[0].close) || [];
+      const it = ITEMS[s.symbol] || (ITEMS[s.symbol] = {hist:[]});
+      it.name=def.name; it.group=def.group; it.unit=def.unit; it.dec=def.dec;
+      it.value = price;
+      it.prev  = isFinite(prev) && prev>0 ? prev : (closes.length>1 ? closes[0] : price);
+      it.change = it.value - it.prev;
+      it.pct    = it.prev ? (it.value/it.prev - 1)*100 : 0;
+      it.hist   = closes.filter(v=>v!=null).slice(-60);
+      it.updated = Date.now();
+      it.src = 'Yahoo';
+      symbolsUpdated++;
+    });
+  });
+  if(symbolsUpdated>0) lastQuotesAt = Date.now();
+  renderAll();
+}
+
+/* ECB reference FX — native CORS fallback when Yahoo FX is unreachable */
+async function refreshFXReference(){
+  try{
+    const end = new Date(), start = new Date(Date.now()-7*864e5);
+    const ymd = d => d.toISOString().slice(0,10);
+    const url = `https://api.frankfurter.dev/v1/${ymd(start)}..?base=USD&symbols=INR,EUR,GBP,JPY,CNY`;
+    const res = await fetch(url, {cache:'no-store'});
+    if(!res.ok) return;
+    const j = await res.json();
+    const dates = Object.keys(j.rates||{}).sort();
+    if(dates.length===0) return;
+    const cur = j.rates[dates[dates.length-1]];
+    const prv = dates.length>1 ? j.rates[dates[dates.length-2]] : null;
+    const apply = (sym, nowVal, prevVal) => {
+      if(!isFinite(nowVal)) return;
+      const it = ITEMS[sym] || (ITEMS[sym] = {...DEF[sym], hist:[]});
+      if(Date.now() - (it.updated||0) < STALE_MS) return;   // fresh Yahoo data wins
+      it.value = nowVal;
+      it.prev  = isFinite(prevVal) && prevVal>0 ? prevVal : nowVal;
+      it.change = it.value - it.prev;
+      it.pct    = it.prev ? (it.value/it.prev - 1)*100 : 0;
+      it.hist   = it.hist.length ? it.hist : [it.prev, it.value];
+      it.updated = Date.now();
+      it.src = 'ECB ref';
+    };
+    apply('INR=X',    cur.INR, prv && prv.INR);
+    apply('EURUSD=X', cur.EUR ? 1/cur.EUR : NaN, prv && prv.EUR ? 1/prv.EUR : NaN);
+    apply('GBPUSD=X', cur.GBP ? 1/cur.GBP : NaN, prv && prv.GBP ? 1/prv.GBP : NaN);
+    apply('USDJPY=X', cur.JPY, prv && prv.JPY);
+    apply('USDCNY=X', cur.CNY, prv && prv.CNY);
+    renderAll();
+  }catch(e){ /* silent — Yahoo remains primary */ }
+}
+
+/* CNN Fear & Greed — live score + history; graceful computed fallback */
+async function refreshFearGreed(){
+  const j = await fetchJSON('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', 'fg');
+  if(j && j.fear_and_greed && isFinite(j.fear_and_greed.score)){
+    const h = (j.fear_and_greed_historical && Array.isArray(j.fear_and_greed_historical.data)) ? j.fear_and_greed_historical.data : [];
+    fg = {
+      score : j.fear_and_greed.score,
+      rating: j.fear_and_greed.rating || '',
+      prev  : j.fear_and_greed.previous_close,
+      w1    : j.fear_and_greed.previous_1_week,
+      m1    : j.fear_and_greed.previous_1_month,
+      hist  : h.slice(-30),
+      src   : 'Live — CNN Business Fear & Greed (updates daily)',
+      updated: Date.now(),
+    };
+  } else {
+    /* computed composite from live breadth & momentum */
+    const cards = Object.entries(ITEMS).filter(([k,v])=>DEF[k] && DEF[k].group!=='gauge' && isFinite(v.pct));
+    if(cards.length>4){
+      const up = cards.filter(([k,v])=>v.pct>0).length;
+      const breadth = up/cards.length;
+      const avgPct = cards.reduce((a,[k,v])=>a+v.pct,0)/cards.length;
+      const score = Math.max(0, Math.min(100, 50 + 40*(breadth-0.5) + 10*Math.max(-2,Math.min(2,avgPct))));
+      fg = {score, rating:'computed', hist:(fg&&fg.hist)||[], src:'Computed live from breadth & momentum (CNN feed unreachable)', updated:Date.now()};
+    }
+  }
+  renderAll();
+}
+
+/* ============================================================
+   5. RENDER — card grids + sparklines
+   ============================================================ */
+let sparkCharts = {};
+const GROUP_GRID = {indian:'indianGrid', global:'globalGrid', commodity:'commodityGrid', bond:'bondGrid', currency:'currencyGrid'};
+
+function renderGrid(gridId, symbols, prefix){
+  const container = document.getElementById(gridId);
+  container.innerHTML = '';
+  symbols.forEach(sym=>{
+    const def = DEF[sym];
+    const it = ITEMS[sym];
+    const id = prefix+'-'+sym.replace(/[^A-Z0-9]/gi,'');
+    const has = it && isFinite(it.value);
+    const stale = has && (Date.now()-it.updated > STALE_MS);
+    const tc = has ? trendClass(it.change) : 'flat';
+    const card = document.createElement('div');
+    card.className = 'card' + (stale?' stale':'');
+    card.innerHTML = has ? `
+      <div class="card-head">
+        <span class="card-name">${def.name}</span>
+        <span class="badge ${tc}">${arrow(it.change)} ${Math.abs(it.pct).toFixed(2)}%</span>
+      </div>
+      <div class="card-value">${fmt(it.value, def.dec)}${def.unit||''}</div>
+      <div class="card-change ${tc}">${it.change>=0?'+':''}${fmt(it.change, def.dec)} today</div>
+      <div class="spark-wrap"><canvas id="${id}"></canvas></div>
+      <div class="card-src">${it.src||''}${stale?' · stale':''}</div>
+    ` : `
+      <div class="card-head">
+        <span class="card-name">${def.name}</span>
+        <span class="badge flat">· · ·</span>
+      </div>
+      <div class="card-value">—</div>
+      <div class="card-change na">awaiting live feed</div>
+      <div class="spark-wrap"></div>
+    `;
+    container.appendChild(card);
+    if(has && it.hist && it.hist.length>1) drawSpark(id, it.hist, tc);
+  });
+}
+
+function drawSpark(id, data, tc){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const ctx = el.getContext('2d');
+  const color = tc==='down' ? '#ef4444' : (tc==='up' ? '#22c55e' : '#8b93a7');
+  const gradient = ctx.createLinearGradient(0,0,0,42);
+  gradient.addColorStop(0, tc==='down' ? 'rgba(239,68,68,0.35)' : 'rgba(34,197,94,0.35)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  if(sparkCharts[id]) sparkCharts[id].destroy();
+  sparkCharts[id] = new Chart(ctx,{
+    type:'line',
+    data:{ labels:data.map((_,i)=>i), datasets:[{
+      data:data, borderColor:color, borderWidth:2, pointRadius:0,
+      fill:true, backgroundColor:gradient, tension:.35
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{enabled:false}},
+      scales:{x:{display:false}, y:{display:false}},
+      animation:{duration:300}
+    }
+  });
+}
+
+/* ============================================================
+   6. GAUGES
+   ============================================================ */
+function setGauge(needleId, valId, labelId, value, min, max, labels){
+  const pct = Math.min(1, Math.max(0, (value-min)/(max-min)));
+  const deg = -90 + pct*180;
+  document.getElementById(needleId).style.transform = `translateX(-50%) rotate(${deg}deg)`;
+  document.getElementById(valId).textContent = value;
+  let lbl, color;
+  if(pct<0.34){lbl=labels[0]; color='#f87171';}
+  else if(pct<0.66){lbl=labels[1]; color='#fbbf24';}
+  else {lbl=labels[2]; color='#4ade80';}
+  const l = document.getElementById(labelId);
+  l.textContent = lbl; l.style.color = color;
+}
+
+function fgZone(score){
+  if(score<25) return {lbl:'Extreme Fear', color:'#f87171'};
+  if(score<45) return {lbl:'Fear',         color:'#fb923c'};
+  if(score<55) return {lbl:'Neutral',      color:'#fbbf24'};
+  if(score<75) return {lbl:'Greed',        color:'#a3e635'};
+  return           {lbl:'Extreme Greed', color:'#4ade80'};
+}
+
+function updateGauges(){
+  /* Fear & Greed */
+  if(fg && isFinite(fg.score)){
+    const z = fgZone(fg.score);
+    const pct = Math.min(1, Math.max(0, fg.score/100));
+    document.getElementById('fgNeedle').style.transform = `translateX(-50%) rotate(${-90+pct*180}deg)`;
+    document.getElementById('fgVal').textContent = Math.round(fg.score);
+    const l = document.getElementById('fgLabel');
+    l.textContent = z.lbl; l.style.color = z.color;
+    document.getElementById('fgSub').textContent = fg.src && fg.src.startsWith('Live') ? 'CNN Business composite (0–100)' : 'Computed composite (CNN feed unreachable)';
+  }
+  /* India VIX */
+  const iv = ITEMS['^INDIAVIX'];
+  if(iv && isFinite(iv.value)) setGauge('vixNeedle','vixVal','vixLabel', iv.value.toFixed(2), 8, 30, ['Calm','Moderate','Panic']);
+  /* CBOE VIX */
+  const uv = ITEMS['^VIX'];
+  if(uv && isFinite(uv.value)) setGauge('uvixNeedle','uvixVal','uvixLabel', uv.value.toFixed(2), 10, 40, ['Calm','Moderate','Panic']);
+  /* Breadth */
+  const cards = Object.entries(ITEMS).filter(([k,v])=>DEF[k] && DEF[k].group!=='gauge' && isFinite(v.pct));
+  if(cards.length){
+    const up = cards.filter(([k,v])=>v.pct>0).length;
+    const breadthPct = Math.round(100*up/cards.length);
+    setGauge('breadthNeedle','breadthVal','breadthLabel', breadthPct+'%', 0, 100, ['Mostly Down','Mixed','Mostly Up']);
+  }
+}
+
+/* ============================================================
+   7. FEAR & GREED HISTORY CHART + STATS
+   ============================================================ */
+let fgChartInstance;
+function renderFGChart(){
+  const canvas = document.getElementById('fgChart');
+  if(!fg || !fg.hist || fg.hist.length<2){
+    document.getElementById('fgSource').textContent = 'Live history unavailable — CNN feed unreachable from this network.';
+    return;
+  }
+  const labels = fg.hist.map(p=>new Date(p.x).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}));
+  const data   = fg.hist.map(p=>Number(Number(p.y).toFixed(1)));
+  const colors = data.map(v=> v>=55 ? '#22c55e' : (v>=45 ? '#f59e0b' : '#ef4444'));
+  const ctx = canvas.getContext('2d');
+  if(fgChartInstance) fgChartInstance.destroy();
+  fgChartInstance = new Chart(ctx,{
+    type:'bar',
+    data:{ labels, datasets:[{label:'Fear & Greed', data, backgroundColor:colors, borderRadius:6}]},
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:'#8b93a7', font:{size:10}, maxTicksLimit:10} },
+        y:{ min:0, max:100, grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'#8b93a7', font:{size:11}, stepSize:25} }
+      }
+    }
+  });
+  const stat = (id, v) => {
+    const el = document.getElementById(id);
+    if(v==null || !isFinite(v)){ el.textContent='--'; el.style.color='var(--text-dim)'; return; }
+    el.textContent = Math.round(v) + ' · ' + fgZone(v).lbl;
+    el.style.color = fgZone(v).color;
+  };
+  stat('fgToday', fg.score);
+  stat('fgPrev',  fg.prev);
+  stat('fg1w',    fg.w1);
+  stat('fg1m',    fg.m1);
+  document.getElementById('fgSource').textContent = fg.src || '';
+}
+
+/* ============================================================
+   8. MARKET STATUS STRIP
+   ============================================================ */
+const marketsTZ = [
+  {name:'India (NSE)', openUTC:3.75, closeUTC:10.0},
+  {name:'UK (LSE)',    openUTC:8.0,  closeUTC:16.5},
+  {name:'US (NYSE)',   openUTC:14.5, closeUTC:21.0},
+  {name:'Japan (TSE)', openUTC:0.0,  closeUTC:6.0},
+  {name:'Hong Kong',   openUTC:1.5,  closeUTC:8.0},
+];
+function renderStatusStrip(){
+  const now = new Date();
+  const day = now.getUTCDay();
+  const hourFrac = now.getUTCHours() + now.getUTCMinutes()/60;
+  const strip = document.getElementById('statusStrip');
+  strip.innerHTML='';
+  marketsTZ.forEach(m=>{
+    const weekday = day>=1 && day<=5;
+    const open = weekday && hourFrac>=m.openUTC && hourFrac<m.closeUTC;
+    const pill = document.createElement('div');
+    pill.className='status-pill';
+    pill.innerHTML = `<span class="sdot ${open?'open':'closed'}"></span> ${m.name}: <b>${open?'OPEN':'CLOSED'}</b>`;
+    strip.appendChild(pill);
+  });
+}
+
+/* ============================================================
+   9. MOOD BADGE + FEED STATUS + CLOCK
+   ============================================================ */
+function updateMood(){
+  const all = Object.entries(ITEMS).filter(([k,v])=>DEF[k] && DEF[k].group!=='gauge' && isFinite(v.pct));
+  const badge = document.getElementById('moodBadge');
+  if(all.length<4){
+    badge.className='mood-badge mood-neutral';
+    badge.innerHTML = `<span class="dot"></span> CONNECTING TO LIVE FEEDS…`;
+    return;
+  }
+  const upCount = all.filter(([k,v])=>v.pct>0).length;
+  const ratio = upCount/all.length;
+  if(ratio>0.6){
+    badge.className='mood-badge mood-bull';
+    badge.innerHTML = `<span class="dot"></span> BULLISH — ${Math.round(ratio*100)}% Assets Up`;
+  } else if(ratio<0.4){
+    badge.className='mood-badge mood-bear';
+    badge.innerHTML = `<span class="dot"></span> BEARISH — ${Math.round((1-ratio)*100)}% Assets Down`;
+  } else {
+    badge.className='mood-badge mood-neutral';
+    badge.innerHTML = `<span class="dot"></span> NEUTRAL / MIXED SENTIMENT`;
+  }
+}
+
+function updateFeedStatus(){
+  const chip = document.getElementById('feedStatus');
+  const age = lastQuotesAt ? Date.now()-lastQuotesAt : Infinity;
+  if(age<90000){
+    chip.className='feed-chip feed-ok';
+    chip.innerHTML = `<span class="dot"></span> LIVE · ${new Date(lastQuotesAt).toLocaleTimeString('en-IN')}`;
+  } else if(isFinite(age) && age<600000){
+    chip.className='feed-chip feed-warn';
+    chip.innerHTML = `<span class="dot"></span> DELAYED · retrying relays…`;
+  } else {
+    chip.className='feed-chip feed-down';
+    chip.innerHTML = `<span class="dot"></span> ${lastQuotesAt?'FEED LOST · retrying':'CONNECTING…'}`;
+  }
+}
+
+function tickClock(){
+  const now = new Date();
+  const lastData = lastQuotesAt ? new Date(lastQuotesAt).toLocaleTimeString('en-IN') : '…';
+  document.getElementById('clock').innerHTML =
+    now.toLocaleTimeString('en-IN',{hour12:false}) + ' IST<small>Data as of: '+lastData+'</small>';
+}
+
+/* ============================================================
+   10. RENDER ALL + SCHEDULERS (pause when tab is hidden)
+   ============================================================ */
+function renderAll(){
+  Object.entries(GROUP_GRID).forEach(([group, gridId])=>{
+    const syms = Object.keys(DEF).filter(s=>DEF[s].group===group);
+    renderGrid(gridId, syms, group);
+  });
+  updateGauges();
+  renderFGChart();
+  updateMood();
+  updateFeedStatus();
+  renderStatusStrip();
+}
+
+const QUOTE_MS = 30000, FG_MS = 600000, FXREF_MS = 1800000;
+
+async function init(){
+  renderAll();
+  tickClock();
+  refreshQuotes().then(refreshFearGreed);
+  setTimeout(refreshFXReference, 8000);        // give Yahoo FX a head start
+  setInterval(tickClock, 1000);
+  setInterval(()=>{ if(!document.hidden) refreshQuotes(); },      QUOTE_MS);
+  setInterval(()=>{ if(!document.hidden) refreshFearGreed(); },   FG_MS);
+  setInterval(()=>{ if(!document.hidden) refreshFXReference(); }, FXREF_MS);
+  setInterval(()=>{ if(!document.hidden) updateFeedStatus(); },   5000);
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden && Date.now()-lastQuotesAt > QUOTE_MS) refreshQuotes();
+  });
+}
+init();
+</script>
+</body>
+</html>
