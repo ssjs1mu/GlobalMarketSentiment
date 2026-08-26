@@ -77,3 +77,18 @@ updates the live site automatically.
   data tables (side by side / stacked responsively); per-block refresh-interval + last-updated chips;
   manual **⟳ Refresh Now** button (keyboard shortcut `R`).
 - **2026-08-26 · v1** — Initial live dashboard (auto-refreshing feeds, CORS-relay resilience).
+## Enabling the public GitHub Pages URL (repo owner, one-time)
+
+This repo's Pages setting currently uses **"GitHub Actions"** deploy mode, but the
+agent's token isn't allowed to add workflows or change Pages settings. Either:
+
+**Option A — easiest (recommended):**
+1. GitHub → *Settings → Pages → Build and deployment → Source*
+2. Choose **"Deploy from a branch"** → Branch: `main`, folder: `/ (root)` → Save
+3. The site builds automatically and goes live at
+   <https://ssjs1mu.github.io/GlobalMarketSentiment/> within ~1 minute.
+
+**Option B — keep Actions deploy mode:**
+1. Copy [`deploy/deploy-pages-workflow.yml`](deploy/deploy-pages-workflow.yml)
+   to `.github/workflows/deploy-pages.yml` (commit on `main`)
+2. Push → the workflow uploads and deploys the site automatically.
