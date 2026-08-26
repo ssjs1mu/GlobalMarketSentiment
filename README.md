@@ -70,3 +70,10 @@ updates the live site automatically.
 
 ---
 *Quotes may be delayed up to 15 minutes for some exchanges. Not investment advice.*
+
+## Changelog
+
+- **2026-08-26 · v2** — Renamed to *JC's Market Sentiment Tracker*; card grids replaced by 3D-tile
+  data tables (side by side / stacked responsively); per-block refresh-interval + last-updated chips;
+  manual **⟳ Refresh Now** button (keyboard shortcut `R`).
+- **2026-08-26 · v1** — Initial live dashboard (auto-refreshing feeds, CORS-relay resilience).
