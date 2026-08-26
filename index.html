@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Market Sentiment Tracker — Live</title>
-<meta name="description" content="Live global market sentiment dashboard: Indian & global indices futures, commodities, US Treasury yields, currencies, CNN Fear & Greed and volatility gauges. Auto-refreshing live feeds.">
+<title>JC's Market Sentiment Tracker — Live</title>
+<meta name="description" content="JC's Market Sentiment Tracker — live global market sentiment dashboard in 3D tile tables: Indian & global indices, commodities, US Treasury yields, currencies, CNN Fear & Greed and volatility gauges. Manual refresh button + auto-refreshing live feeds with per-block refresh times.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -38,27 +38,30 @@ body{
 /* ---------- HEADER ---------- */
 header.top{
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
-  padding:18px 26px;border-radius:20px;
+  padding:18px 26px;border-radius:22px;
   background:linear-gradient(120deg,rgba(99,102,241,0.18),rgba(6,182,212,0.14),rgba(236,72,153,0.12));
   border:1px solid var(--card-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 0 -2px #070a16, 0 18px 40px rgba(0,0,0,0.45);
   backdrop-filter:blur(14px);
-  margin-bottom:14px;
+  margin-bottom:16px;
 }
 .logo{display:flex;align-items:center;gap:12px;}
 .logo .icon{
-  width:46px;height:46px;border-radius:14px;
+  width:48px;height:48px;border-radius:14px;
   background:linear-gradient(135deg,var(--ind1),var(--ind2));
-  display:flex;align-items:center;justify-content:center;font-size:22px;
-  box-shadow:0 6px 20px rgba(99,102,241,0.5);
+  display:flex;align-items:center;justify-content:center;font-size:23px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 0 rgba(9,12,24,0.9), 0 10px 20px rgba(99,102,241,0.5);
 }
-.logo h1{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;letter-spacing:.3px;}
+.logo h1{font-family:'Poppins',sans-serif;font-size:21px;font-weight:800;letter-spacing:.3px;color:#fff;}
+.logo h1 .jc{background:linear-gradient(90deg,#a78bfa,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .logo p{font-size:12px;color:var(--text-dim);margin-top:2px;}
-.head-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.head-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 #clock{font-family:'Poppins';font-weight:600;font-size:15px;color:#fff;}
 #clock small{display:block;font-size:11px;color:var(--text-dim);font-weight:400;text-align:right;}
 .mood-badge{
   padding:9px 18px;border-radius:30px;font-weight:700;font-size:13px;letter-spacing:.4px;
   display:flex;align-items:center;gap:8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.15), 0 3px 8px rgba(0,0,0,0.3);
 }
 .mood-bull{background:linear-gradient(90deg,rgba(34,197,94,0.25),rgba(34,197,94,0.08));color:#4ade80;border:1px solid rgba(74,222,128,0.4);}
 .mood-bear{background:linear-gradient(90deg,rgba(239,68,68,0.25),rgba(239,68,68,0.08));color:#f87171;border:1px solid rgba(248,113,113,0.4);}
@@ -66,98 +69,226 @@ header.top{
 .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;animation:pulse 1.6s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
+/* ---------- MANUAL REFRESH BUTTON (3D keycap) ---------- */
+.btn3d{
+  font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;letter-spacing:.4px;
+  color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:14px;
+  padding:11px 18px;cursor:pointer;white-space:nowrap;
+  background:linear-gradient(145deg,#7c3aed,#4f46e5 55%,#0891b2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -2px 5px rgba(0,0,0,0.3),
+             0 5px 0 #241a5e, 0 14px 26px rgba(79,70,229,0.45);
+  transition:transform .12s ease, box-shadow .12s ease, filter .2s ease;
+  display:inline-flex;align-items:center;gap:9px;
+}
+.btn3d:hover{filter:brightness(1.12);}
+.btn3d:active{transform:translateY(4px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 0 #241a5e, 0 5px 12px rgba(79,70,229,0.4);}
+.btn3d .bicon{font-size:16px;display:inline-block;line-height:1;}
+.btn3d.busy .bicon{animation:spin .9s linear infinite;}
+.btn3d.busy{pointer-events:none;filter:saturate(.8) brightness(1.05);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.kbd{
+  background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);
+  border-radius:6px;padding:1px 7px;font-size:11px;font-family:'Inter';
+  box-shadow:0 2px 0 rgba(0,0,0,0.3);
+}
+
 /* ---------- FEED STATUS CHIP ---------- */
 .feed-chip{
   display:flex;align-items:center;gap:8px;
-  padding:8px 15px;border-radius:30px;font-size:12px;font-weight:700;letter-spacing:.4px;
+  padding:9px 15px;border-radius:30px;font-size:12px;font-weight:700;letter-spacing:.4px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);
 }
 .feed-chip .dot{width:7px;height:7px;}
 .feed-ok{background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.35);}
 .feed-warn{background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);}
 .feed-down{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.35);}
 
-/* ---------- TRADINGVIEW TAPE ---------- */
-.tv-wrap{margin-bottom:16px;border-radius:14px;overflow:hidden;border:1px solid var(--card-border);background:rgba(10,14,26,0.55);}
+/* ---------- 3D TILE (shared by every block) ---------- */
+.tile{
+  --acc1:#6366f1; --acc2:#06b6d4;
+  position:relative;border-radius:22px;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.10);
+  background:linear-gradient(150deg,#242c49 0%,#151b32 45%,#101529 100%);
+  background:
+    radial-gradient(130% 90% at 50% -10%, color-mix(in srgb, var(--acc1) 17%, transparent), transparent 55%),
+    linear-gradient(150deg,#242c49 0%,#151b32 45%,#101529 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    inset 0 -2px 8px rgba(0,0,0,0.45),
+    0 6px 0 -1px #070a16,
+    0 12px 26px rgba(0,0,0,0.45),
+    0 32px 64px -24px rgba(0,0,0,0.6);
+  transition:transform .28s cubic-bezier(.2,.9,.3,1.3), box-shadow .28s ease, border-color .28s ease;
+  animation:tileIn .55s cubic-bezier(.2,.8,.3,1) backwards;
+}
+@keyframes tileIn{from{opacity:0;transform:translateY(18px) scale(.97);}}
+.tile::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;z-index:2;
+  background:linear-gradient(90deg,var(--acc1),var(--acc2));
+  opacity:.95;
+}
+.tile::after{
+  content:'';position:absolute;inset:0;border-radius:22px;pointer-events:none;z-index:1;
+  background:linear-gradient(180deg,rgba(255,255,255,0.055),transparent 18%);
+}
+.tile:hover{
+  transform:translateY(-5px);border-color:rgba(255,255,255,0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -2px 8px rgba(0,0,0,0.45),
+    0 11px 0 -1px #070a16,
+    0 20px 36px rgba(0,0,0,0.5),
+    0 44px 80px -28px color-mix(in srgb, var(--acc1) 55%, rgba(0,0,0,0.6));
+}
+.tile-head{
+  position:relative;z-index:3;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.07);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--acc1) 14%, transparent), transparent);
+}
+.tile-title{display:flex;align-items:center;gap:11px;min-width:0;}
+.tile-title h3{font-family:'Poppins';font-size:15px;font-weight:700;color:#fff;letter-spacing:.2px;white-space:nowrap;}
+.tile-title small{display:block;font-size:11px;color:var(--text-dim);margin-top:1px;}
+.ticon{
+  width:40px;height:40px;flex:0 0 40px;border-radius:12px;font-size:19px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg, var(--acc1), var(--acc2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,0,0,0.3),
+             0 3px 0 rgba(7,10,22,0.9), 0 8px 16px color-mix(in srgb, var(--acc1) 45%, transparent);
+}
+.chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:5px 11px;border-radius:20px;white-space:nowrap;
+  border:1px solid rgba(255,255,255,0.14);
+  background:rgba(255,255,255,0.05);color:#c8cede;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.3);
+}
+.chip.rf{
+  border-color:color-mix(in srgb, var(--acc1) 50%, transparent);
+  background:linear-gradient(135deg, color-mix(in srgb, var(--acc1) 28%, transparent), color-mix(in srgb, var(--acc2) 14%, transparent));
+  color:#eef0f7;
+}
+.chip.rf .rfi{font-size:12px;display:inline-block;}
+.chip.upd .udot{width:7px;height:7px;border-radius:50%;background:#555;flex:0 0 7px;}
+.chip.upd.ok .udot{background:var(--green);box-shadow:0 0 7px var(--green);}
+.chip.upd.warn .udot{background:var(--amber);box-shadow:0 0 7px var(--amber);}
+
+/* accent themes per block */
+.tile.t-indian   {--acc1:#f97316; --acc2:#fbbf24;}
+.tile.t-global   {--acc1:#6366f1; --acc2:#22d3ee;}
+.tile.t-commodity{--acc1:#eab308; --acc2:#f97316;}
+.tile.t-bond     {--acc1:#14b8a6; --acc2:#34d399;}
+.tile.t-currency {--acc1:#ec4899; --acc2:#a78bfa;}
+.tile.t-fg       {--acc1:#ef4444; --acc2:#22c55e;}
+.tile.t-vix      {--acc1:#8b5cf6; --acc2:#6366f1;}
+.tile.t-uvix     {--acc1:#64748b; --acc2:#8b5cf6;}
+.tile.t-breadth  {--acc1:#06b6d4; --acc2:#4ade80;}
+.tile.t-history  {--acc1:#f59e0b; --acc2:#ec4899;}
+.tile.t-tape     {--acc1:#0ea5e9; --acc2:#22d3ee;}
+
+/* ---------- TRADINGVIEW TAPE TILE ---------- */
+.tv-tile{margin-bottom:18px;border-radius:18px;}
+.tv-tile .tv-head{padding:10px 16px;}
+.tv-tile .tile-title h3{font-size:13.5px;}
+.tv-body{padding:4px 6px 6px;background:rgba(10,14,26,0.5);}
 
 /* ---------- MARKET STATUS STRIP ---------- */
-.status-strip{
-  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;
-}
+.status-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
 .status-pill{
   display:flex;align-items:center;gap:7px;
   background:var(--card);border:1px solid var(--card-border);
   padding:7px 14px;border-radius:20px;font-size:12.5px;color:var(--text-dim);
   backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 0 -1px #070a16;
 }
 .status-pill b{color:var(--text);font-weight:600;}
 .status-pill .sdot{width:7px;height:7px;border-radius:50%;}
 .open{background:var(--green);box-shadow:0 0 8px var(--green);}
 .closed{background:#555;}
 
-/* ---------- SECTION TITLES ---------- */
-.section{margin-bottom:30px;}
-.section h2{
-  font-family:'Poppins',sans-serif;font-size:17px;font-weight:600;
-  display:flex;align-items:center;gap:10px;margin-bottom:14px;color:#fff;
+/* ---------- TABLES BOARD — side by side or stacked as margin allows ---------- */
+.tables-board{
+  display:grid;grid-template-columns:repeat(12,1fr);gap:24px;
+  margin-bottom:26px;align-items:stretch;
 }
-.section h2 .bar{
-  width:5px;height:20px;border-radius:4px;
-  background:linear-gradient(var(--ind1),var(--ind2));
-  display:inline-block;
+.tables-board > .tile{grid-column:span 12;}
+@media(min-width:780px){
+  .tables-board > .s-md-6{grid-column:span 6;}
 }
-.section h2 small{font-size:11px;color:var(--text-dim);font-weight:400;margin-left:2px;}
+@media(min-width:1200px){
+  .tables-board > .s-lg-6{grid-column:span 6;}
+  .tables-board > .s-lg-4{grid-column:span 4;}
+}
+.tables-board > .tile:nth-child(1){animation-delay:.02s;}
+.tables-board > .tile:nth-child(2){animation-delay:.08s;}
+.tables-board > .tile:nth-child(3){animation-delay:.14s;}
+.tables-board > .tile:nth-child(4){animation-delay:.20s;}
+.tables-board > .tile:nth-child(5){animation-delay:.26s;}
 
-/* ---------- GRID / CARDS ---------- */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px;}
-.card{
-  position:relative;background:var(--card);border:1px solid var(--card-border);
-  border-radius:var(--radius);padding:14px 16px 10px;backdrop-filter:blur(12px);
-  transition:transform .25s ease, box-shadow .25s ease, border-color .25s;
-  overflow:hidden;
+/* ---------- DATA TABLES ---------- */
+.mtable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.mtable thead th{
+  font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:#98a0b6;font-weight:700;
+  text-align:left;padding:9px 14px;
+  background:rgba(255,255,255,0.025);
+  border-bottom:1px solid rgba(255,255,255,0.09);
 }
-.card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--ind1),var(--ind2),var(--ind3));
+.mtable th.num,.mtable td.num{text-align:right;}
+.mtable tbody td{
+  padding:8px 14px;font-size:13px;color:var(--text);
+  border-top:1px solid rgba(255,255,255,0.045);
 }
-.card:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.18);}
-.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;}
-.card-name{font-size:12.5px;color:var(--text-dim);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;}
-.badge.up{background:rgba(34,197,94,0.15);color:var(--green);}
-.badge.down{background:rgba(239,68,68,0.15);color:var(--red);}
-.badge.flat{background:rgba(139,147,167,0.15);color:var(--text-dim);}
-.card-value{font-family:'Poppins';font-size:21px;font-weight:700;color:#fff;margin-bottom:2px;}
-.card.stale .card-value{color:var(--amber);}
-.card-change{font-size:12px;font-weight:600;margin-bottom:6px;}
-.card-change.up{color:var(--green);}
-.card-change.down{color:var(--red);}
-.card-change.na{color:var(--text-dim);}
-.spark-wrap{height:42px;margin-top:2px;}
-.card-src{position:absolute;right:10px;bottom:8px;font-size:9px;color:rgba(139,147,167,0.55);letter-spacing:.3px;}
+.mtable tbody tr:first-child td{border-top:none;}
+.mtable tbody tr{
+  transition:background .18s ease;
+  background:rgba(255,255,255,0.012);
+}
+.mtable tbody tr:nth-child(even){background:rgba(255,255,255,0.03);}
+.mtable tbody tr:hover{
+  background:linear-gradient(90deg, rgba(99,102,241,0.10), transparent 75%);
+  background:linear-gradient(90deg, color-mix(in srgb, var(--acc1) 13%, transparent), transparent 75%);
+}
+.cname{font-weight:500;color:#dfe3ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+.ltp{font-family:'Poppins';font-size:14px;font-weight:600;color:#fff;white-space:nowrap;}
+tr.stale .ltp{color:var(--amber);}
+.chg{font-weight:600;white-space:nowrap;}
+.chg.up{color:var(--green);}
+.chg.down{color:var(--red);}
+.chg.flat,.dim{color:var(--text-dim);}
+.pct-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.pct-badge.up{background:rgba(34,197,94,0.16);color:#4ade80;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);}
+.pct-badge.down{background:rgba(239,68,68,0.16);color:#f87171;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);}
+.pct-badge.flat{background:rgba(139,147,167,0.15);color:var(--text-dim);}
+.spark-cell{width:142px;}
+.spark-wrap{width:132px;height:36px;margin-left:auto;}
+.await{font-size:10.5px;color:var(--text-dim);font-style:italic;}
+@keyframes flashUp{0%{background-color:rgba(34,197,94,0.30);}100%{background-color:transparent;}}
+@keyframes flashDown{0%{background-color:rgba(239,68,68,0.30);}100%{background-color:transparent;}}
+tr.flash-up td{animation:flashUp 1.3s ease-out;}
+tr.flash-down td{animation:flashDown 1.3s ease-out;}
+@media(max-width:620px){
+  .mtable th.sparkcol,.mtable td.spark-cell{display:none;}
+  .cname{max-width:130px;}
+  .mtable tbody td,.mtable thead th{padding:8px 9px;}
+}
 
 /* ---------- SENTIMENT GAUGES ---------- */
-.gauge-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:30px;}
-.gauge-card{
-  background:var(--card);border:1px solid var(--card-border);border-radius:20px;
-  padding:20px;text-align:center;backdrop-filter:blur(12px);position:relative;overflow:hidden;
+.gauge-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));
+  gap:24px;margin-bottom:26px;
 }
-.gauge-card::after{
-  content:'';position:absolute;inset:0;border-radius:20px;padding:1px;
-  background:linear-gradient(135deg,rgba(99,102,241,0.4),transparent 50%);
-  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite:exclude; pointer-events:none;
-}
-.gauge-card h3{font-family:'Poppins';font-size:14px;font-weight:600;color:#dcdfe8;margin-bottom:6px;}
-.gauge-card .sub{font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
-.gauge{width:210px;height:105px;position:relative;margin:14px auto 0;}
+.gauge-tile .gauge-body{padding:16px 16px 20px;text-align:center;}
+.gauge{width:200px;height:100px;position:relative;margin:14px auto 0;}
 .gauge-bg{
-  width:210px;height:105px;border-radius:105px 105px 0 0;overflow:hidden;
+  width:200px;height:100px;border-radius:100px 100px 0 0;overflow:hidden;
   background:conic-gradient(from 270deg at 50% 100%,
     #ef4444 0deg, #f97316 45deg, #eab308 90deg, #84cc16 135deg, #22c55e 180deg);
-  box-shadow:inset 0 0 20px rgba(0,0,0,0.4);
+  box-shadow:inset 0 0 20px rgba(0,0,0,0.4), 0 6px 14px rgba(0,0,0,0.35);
 }
 .gauge-needle{
-  position:absolute;bottom:0;left:50%;width:3px;height:88px;
+  position:absolute;bottom:0;left:50%;width:3px;height:84px;
   background:linear-gradient(#fff,#c7c9d4);transform-origin:bottom center;
   transform:translateX(-50%) rotate(-90deg);
   border-radius:3px;transition:transform 1.2s cubic-bezier(.4,1.4,.6,1);
@@ -169,15 +300,12 @@ header.top{
   box-shadow:0 0 10px rgba(255,255,255,0.6);
 }
 .gauge-value{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);text-align:center;}
-.gauge-value b{font-family:'Poppins';font-size:24px;font-weight:800;color:#fff;display:block;}
+.gauge-value b{font-family:'Poppins';font-size:23px;font-weight:800;color:#fff;display:block;}
 .gauge-value span{font-size:11.5px;font-weight:600;letter-spacing:.4px;}
 .gauge-scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-dim);margin-top:14px;padding:0 6px;}
 
-/* ---------- SENTIMENT HISTORY CARD ---------- */
-.flows-card{
-  background:var(--card);border:1px solid var(--card-border);border-radius:20px;
-  padding:22px;backdrop-filter:blur(12px);
-}
+/* ---------- SENTIMENT HISTORY TILE ---------- */
+.history-body{position:relative;z-index:3;padding:18px;}
 .flows-legend{display:flex;gap:18px;margin-bottom:10px;font-size:12.5px;color:var(--text-dim);flex-wrap:wrap;}
 .flows-legend span{display:flex;align-items:center;gap:6px;}
 .dotlg{width:10px;height:10px;border-radius:3px;display:inline-block;}
@@ -185,6 +313,7 @@ header.top{
 .flow-stat{
   flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
   border-radius:14px;padding:12px 16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 0 -1px #070a16;
 }
 .flow-stat .lab{font-size:11.5px;color:var(--text-dim);margin-bottom:4px;}
 .flow-stat .val{font-family:'Poppins';font-size:18px;font-weight:700;}
@@ -214,11 +343,14 @@ footer a:hover{text-decoration:underline;}
     <div class="logo">
       <div class="icon">📊</div>
       <div>
-        <h1>Global Market Sentiment Tracker</h1>
+        <h1><span class="jc">JC's</span> Market Sentiment Tracker</h1>
         <p>Indices · Commodities · Bonds · Currencies — Live Data Feeds</p>
       </div>
     </div>
     <div class="head-right">
+      <button class="btn3d" id="refreshBtn" title="Refresh all live feeds now — or press R">
+        <span class="bicon">⟳</span><span class="btxt">Refresh Now</span><span class="kbd">R</span>
+      </button>
       <div id="clock">--:--:-- <small>waiting for first live feed…</small></div>
       <div class="feed-chip feed-down" id="feedStatus"><span class="dot"></span> CONNECTING…</div>
       <div class="mood-badge mood-neutral" id="moodBadge"><span class="dot"></span> Connecting…</div>
@@ -226,29 +358,40 @@ footer a:hover{text-decoration:underline;}
   </header>
 
   <!-- TRADINGVIEW LIVE TICKER TAPE (independent live redundancy) -->
-  <div class="tv-wrap">
-    <div class="tradingview-widget-container">
-      <div class="tradingview-widget-container__widget"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-      {
-        "symbols": [
-          { "proName": "NSE:NIFTY",     "title": "Nifty 50" },
-          { "proName": "NSE:NIFTY_BANK","title": "Bank Nifty" },
-          { "proName": "BSE:SENSEX",    "title": "Sensex" },
-          { "proName": "FOREXCOM:USDINR","title": "USD/INR" },
-          { "proName": "TVC:GOLD",      "title": "Gold" },
-          { "proName": "TVC:USOIL",     "title": "WTI Crude" },
-          { "proName": "SP:SPX",        "title": "S&P 500" },
-          { "proName": "NASDAQ:NDX",    "title": "Nasdaq 100" },
-          { "proName": "TVC:DXY",       "title": "Dollar Index" }
-        ],
-        "showSymbolLogo": true,
-        "colorTheme": "dark",
-        "isTransparent": true,
-        "displayMode": "adaptive",
-        "fontFamily": "Inter, sans-serif"
-      }
-      </script>
+  <div class="tile t-tape tv-tile">
+    <div class="tile-head tv-head">
+      <div class="tile-title">
+        <span class="ticon">📺</span>
+        <div><h3>Live Ticker Tape</h3><small>Independent redundancy feed</small></div>
+      </div>
+      <div class="chips">
+        <span class="chip rf"><span class="rfi">⚡</span> TradingView · continuous stream</span>
+      </div>
+    </div>
+    <div class="tv-body">
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+        {
+          "symbols": [
+            { "proName": "NSE:NIFTY",     "title": "Nifty 50" },
+            { "proName": "NSE:NIFTY_BANK","title": "Bank Nifty" },
+            { "proName": "BSE:SENSEX",    "title": "Sensex" },
+            { "proName": "FOREXCOM:USDINR","title": "USD/INR" },
+            { "proName": "TVC:GOLD",      "title": "Gold" },
+            { "proName": "TVC:USOIL",     "title": "WTI Crude" },
+            { "proName": "SP:SPX",        "title": "S&P 500" },
+            { "proName": "NASDAQ:NDX",    "title": "Nasdaq 100" },
+            { "proName": "TVC:DXY",       "title": "Dollar Index" }
+          ],
+          "showSymbolLogo": true,
+          "colorTheme": "dark",
+          "isTransparent": true,
+          "displayMode": "adaptive",
+          "fontFamily": "Inter, sans-serif"
+        }
+        </script>
+      </div>
     </div>
   </div>
 
@@ -257,70 +400,169 @@ footer a:hover{text-decoration:underline;}
 
   <!-- SENTIMENT GAUGES -->
   <div class="gauge-row">
-    <div class="gauge-card">
-      <h3>😱 Fear &amp; Greed Index</h3>
-      <div class="sub" id="fgSub">CNN Business composite (0–100)</div>
-      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="fgNeedle"></div>
-        <div class="gauge-value"><b id="fgVal">--</b><span id="fgLabel">--</span></div></div>
-      <div class="gauge-scale"><span>Fear</span><span>Neutral</span><span>Greed</span></div>
+    <div class="tile t-fg gauge-tile">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">😱</span>
+          <div><h3>Fear &amp; Greed Index</h3><small id="fgSub">CNN Business composite (0–100)</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 10 min</span>
+          <span class="chip upd" id="upd-fg"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="fgNeedle"></div>
+          <div class="gauge-value"><b id="fgVal">--</b><span id="fgLabel">--</span></div></div>
+        <div class="gauge-scale"><span>Fear</span><span>Neutral</span><span>Greed</span></div>
+      </div>
     </div>
-    <div class="gauge-card">
-      <h3>⚡ India VIX</h3>
-      <div class="sub">NSE volatility / fear gauge (live)</div>
-      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="vixNeedle"></div>
-        <div class="gauge-value"><b id="vixVal">--</b><span id="vixLabel">--</span></div></div>
-      <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+    <div class="tile t-vix gauge-tile">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">⚡</span>
+          <div><h3>India VIX</h3><small>NSE volatility / fear gauge (live)</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s</span>
+          <span class="chip upd" id="upd-vix"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="vixNeedle"></div>
+          <div class="gauge-value"><b id="vixVal">--</b><span id="vixLabel">--</span></div></div>
+        <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+      </div>
     </div>
-    <div class="gauge-card">
-      <h3>🌪️ CBOE VIX (US)</h3>
-      <div class="sub">S&amp;P 500 volatility index (live)</div>
-      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="uvixNeedle"></div>
-        <div class="gauge-value"><b id="uvixVal">--</b><span id="uvixLabel">--</span></div></div>
-      <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+    <div class="tile t-uvix gauge-tile">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">🌪️</span>
+          <div><h3>CBOE VIX (US)</h3><small>S&amp;P 500 volatility index (live)</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s</span>
+          <span class="chip upd" id="upd-uvix"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="uvixNeedle"></div>
+          <div class="gauge-value"><b id="uvixVal">--</b><span id="uvixLabel">--</span></div></div>
+        <div class="gauge-scale"><span>Calm</span><span>Moderate</span><span>Panic</span></div>
+      </div>
     </div>
-    <div class="gauge-card">
-      <h3>🌐 Market Breadth</h3>
-      <div class="sub">% of tracked assets in the green (live)</div>
-      <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="breadthNeedle"></div>
-        <div class="gauge-value"><b id="breadthVal">--</b><span id="breadthLabel">--</span></div></div>
-      <div class="gauge-scale"><span>Mostly Down</span><span>Mixed</span><span>Mostly Up</span></div>
+    <div class="tile t-breadth gauge-tile">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">🌐</span>
+          <div><h3>Market Breadth</h3><small>% of tracked assets in the green (computed live)</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s · computed</span>
+          <span class="chip upd" id="upd-breadth"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <div class="gauge-body">
+        <div class="gauge"><div class="gauge-bg"></div><div class="gauge-needle" id="breadthNeedle"></div>
+          <div class="gauge-value"><b id="breadthVal">--</b><span id="breadthLabel">--</span></div></div>
+        <div class="gauge-scale"><span>Mostly Down</span><span>Mixed</span><span>Mostly Up</span></div>
+      </div>
     </div>
   </div>
 
-  <!-- INDIAN MARKETS -->
-  <div class="section">
-    <h2><span class="bar"></span>🇮🇳 Indian Markets <small>· NSE / BSE live</small></h2>
-    <div class="grid" id="indianGrid"></div>
-  </div>
+  <!-- LIVE DATA TABLES — side by side when the page margin allows, stacked on narrow screens -->
+  <div class="tables-board">
 
-  <!-- GLOBAL INDICES FUTURES -->
-  <div class="section">
-    <h2><span class="bar"></span>🌍 Global Indices &amp; Futures <small>· live</small></h2>
-    <div class="grid" id="globalGrid"></div>
-  </div>
+    <div class="tile t-indian s-lg-6">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">🇮🇳</span>
+          <div><h3>Indian Markets</h3><small>NSE / BSE · live quotes</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s</span>
+          <span class="chip upd" id="upd-indian"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <table class="mtable">
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <tbody id="tb-indian"></tbody>
+      </table>
+    </div>
 
-  <!-- COMMODITIES -->
-  <div class="section">
-    <h2><span class="bar"></span>🛢️ Commodities <small>· live</small></h2>
-    <div class="grid" id="commodityGrid"></div>
-  </div>
+    <div class="tile t-global s-lg-6">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">🌍</span>
+          <div><h3>Global Indices &amp; Futures</h3><small>US · Europe · Asia · live</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s</span>
+          <span class="chip upd" id="upd-global"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <table class="mtable">
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <tbody id="tb-global"></tbody>
+      </table>
+    </div>
 
-  <!-- BOND YIELDS -->
-  <div class="section">
-    <h2><span class="bar"></span>📈 US Treasury Yields <small>· live (CBOE/Yahoo)</small></h2>
-    <div class="grid" id="bondGrid"></div>
-  </div>
+    <div class="tile t-commodity s-md-6 s-lg-4">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">🛢️</span>
+          <div><h3>Commodities</h3><small>Metals · Energy · Bitcoin</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s</span>
+          <span class="chip upd" id="upd-commodity"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <table class="mtable">
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <tbody id="tb-commodity"></tbody>
+      </table>
+    </div>
 
-  <!-- CURRENCIES -->
-  <div class="section">
-    <h2><span class="bar"></span>💱 Currencies <small>· live · ECB reference fallback</small></h2>
-    <div class="grid" id="currencyGrid"></div>
+    <div class="tile t-bond s-md-6 s-lg-4">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">📈</span>
+          <div><h3>US Treasury Yields</h3><small>CBOE / Yahoo · live</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s</span>
+          <span class="chip upd" id="upd-bond"><span class="udot"></span> waiting…</span>
+        </div>
+      </div>
+      <table class="mtable">
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <tbody id="tb-bond"></tbody>
+      </table>
+    </div>
+
+    <div class="tile t-currency s-lg-4">
+      <div class="tile-head">
+        <div class="tile-title"><span class="ticon">💱</span>
+          <div><h3>Currencies</h3><small>live · ECB reference fallback</small></div>
+        </div>
+        <div class="chips">
+          <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s <small style="text-transform:none;letter-spacing:0;">(fallback 30 min)</small></span>
+          <span class="chip upd" id="upd-currency"><span class="udot"></span> waiting…</span>
+        </div>
+        </div>
+      <table class="mtable">
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <tbody id="tb-currency"></tbody>
+      </table>
+    </div>
+
   </div>
 
   <!-- SENTIMENT HISTORY -->
-  <div class="section">
-    <h2><span class="bar"></span>🧭 Fear &amp; Greed — Sentiment History <small>· CNN Business daily data</small></h2>
-    <div class="flows-card">
+  <div class="tile t-history">
+    <div class="tile-head">
+      <div class="tile-title"><span class="ticon">🧭</span>
+        <div><h3>Fear &amp; Greed — Sentiment History</h3><small>CNN Business daily data</small></div>
+      </div>
+      <div class="chips">
+        <span class="chip rf"><span class="rfi">⟳</span> auto · 10 min</span>
+        <span class="chip upd" id="upd-history"><span class="udot"></span> waiting…</span>
+      </div>
+    </div>
+    <div class="history-body">
       <div class="flows-legend">
         <span><i class="dotlg" style="background:#22c55e"></i> Greed (≥ 55)</span>
         <span><i class="dotlg" style="background:#f59e0b"></i> Neutral (45–55)</span>
@@ -338,12 +580,14 @@ footer a:hover{text-decoration:underline;}
   </div>
 
   <footer>
-    <b>About the live data:</b> Quotes refresh automatically every 30&nbsp;s from
+    <b>JC's Market Sentiment Tracker</b> — quotes refresh automatically every 30&nbsp;s from
     <a href="https://finance.yahoo.com" target="_blank" rel="noopener">Yahoo Finance</a> public endpoints
-    (some exchanges delayed up to 15&nbsp;min) · Fear &amp; Greed from
+    (some exchanges delayed up to 15&nbsp;min) · Fear &amp; Greed every 10&nbsp;min from
     <a href="https://edition.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener">CNN Business</a> ·
-    FX reference fallback from <a href="https://frankfurter.dev" target="_blank" rel="noopener">ECB / Frankfurter</a> ·
-    ticker tape by <a href="https://tradingview.com" target="_blank" rel="noopener">TradingView</a>.<br>
+    FX reference fallback every 30&nbsp;min from <a href="https://frankfurter.dev" target="_blank" rel="noopener">ECB / Frankfurter</a> ·
+    ticker tape by <a href="https://tradingview.com" target="_blank" rel="noopener">TradingView</a> (continuous).<br>
+    Every block shows its own auto-refresh interval and last-updated time — use the <b>⟳ Refresh Now</b> button
+    (or press <b>R</b>) to refresh all feeds on demand.<br>
     If a feed can't be reached directly from the browser, the page automatically retries through public CORS relays
     and flags any stale values in <b>amber</b> — no simulated numbers are ever shown.<br>
     <b>Note:</b> FII/DII cash flows and Nifty option-chain PCR are published by NSE through endpoints that block
@@ -404,7 +648,7 @@ const DEF = {
   'GBPUSD=X'   : {name:'GBP/USD',              group:'currency',  unit:'',      dec:4},
   'USDJPY=X'   : {name:'USD/JPY',              group:'currency',  unit:'',      dec:3},
   'USDCNY=X'   : {name:'USD/CNY',              group:'currency',  unit:'',      dec:4},
-  /* Gauge-only feeds (no card, rendered into the gauge row) */
+  /* Gauge-only feeds (no table row, rendered into the gauge tiles) */
   '^INDIAVIX'  : {name:'India VIX',            group:'gauge'},
   '^VIX'       : {name:'CBOE VIX',             group:'gauge'},
 };
@@ -417,9 +661,17 @@ const BATCHES = [
   ['GC=F','SI=F','CL=F','BZ=F','NG=F','HG=F','PL=F','BTC-USD','INR=X','DX-Y.NYB','EURUSD=X','GBPUSD=X','USDJPY=X','USDCNY=X','^IRX','^FVX','^TNX','^TYX'],
 ];
 
-const ITEMS = {};   // symbol → live state {value, prev, change, pct, hist[], updated, src}
+const ITEMS = {};   // symbol → live state {value, prev, change, pct, hist[], updated, src, flash}
 let lastQuotesAt = 0;
 let fg = null;      // fear & greed {score, rating, prev, w1, m1, hist[], src, updated}
+
+/* Per-block refresh cadence (shown on every tile) */
+const QUOTE_MS = 30000;      // quotes tables + VIX gauges + breadth
+const FG_MS    = 600000;     // CNN Fear & Greed gauge + history
+const FXREF_MS = 1800000;    // ECB/Frankfurter FX reference fallback
+
+/* Last successful update timestamp per block (drives the "updated HH:MM:SS" chips) */
+const blockUpdated = {};    // indian/global/commodity/bond/currency/vix/uvix
 
 /* ============================================================
    2. TRANSPORT — direct first, then public CORS relays
@@ -474,6 +726,9 @@ const yahooSparkURL = syms =>
 function fmt(num, decimals=2){
   return Number(num).toLocaleString('en-IN',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
 }
+function fmtL(num, decimals, locale){
+  return Number(num).toLocaleString(locale,{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
+}
 function trendClass(v){ return v>0 ? 'up' : (v<0 ? 'down' : 'flat'); }
 function arrow(v){ return v>0 ? '▲' : (v<0 ? '▼' : '■'); }
 const STALE_MS = 150000;   // 2.5 min without an update → amber
@@ -497,6 +752,7 @@ async function refreshQuotes(){
       const prev = Number(meta.previousClose ?? meta.chartPreviousClose);
       const closes = (resp.indicators && resp.indicators.quote && resp.indicators.quote[0] && resp.indicators.quote[0].close) || [];
       const it = ITEMS[s.symbol] || (ITEMS[s.symbol] = {hist:[]});
+      const oldVal = it.value;
       it.name=def.name; it.group=def.group; it.unit=def.unit; it.dec=def.dec;
       it.value = price;
       it.prev  = isFinite(prev) && prev>0 ? prev : (closes.length>1 ? closes[0] : price);
@@ -505,7 +761,15 @@ async function refreshQuotes(){
       it.hist   = closes.filter(v=>v!=null).slice(-60);
       it.updated = Date.now();
       it.src = 'Yahoo';
+      it.flash = (isFinite(oldVal) && oldVal!==price) ? (price>oldVal ? 'up' : 'down') : null;
       symbolsUpdated++;
+      /* per-block last-updated stamp */
+      if(def.group==='gauge'){
+        if(s.symbol==='^INDIAVIX') blockUpdated.vix = it.updated;
+        if(s.symbol==='^VIX')      blockUpdated.uvix = it.updated;
+      } else {
+        blockUpdated[def.group] = it.updated;
+      }
     });
   });
   if(symbolsUpdated>0) lastQuotesAt = Date.now();
@@ -529,6 +793,7 @@ async function refreshFXReference(){
       if(!isFinite(nowVal)) return;
       const it = ITEMS[sym] || (ITEMS[sym] = {...DEF[sym], hist:[]});
       if(Date.now() - (it.updated||0) < STALE_MS) return;   // fresh Yahoo data wins
+      const oldVal = it.value;
       it.value = nowVal;
       it.prev  = isFinite(prevVal) && prevVal>0 ? prevVal : nowVal;
       it.change = it.value - it.prev;
@@ -536,6 +801,8 @@ async function refreshFXReference(){
       it.hist   = it.hist.length ? it.hist : [it.prev, it.value];
       it.updated = Date.now();
       it.src = 'ECB ref';
+      it.flash = (isFinite(oldVal) && oldVal!==it.value) ? (it.value>oldVal ? 'up' : 'down') : null;
+      blockUpdated.currency = it.updated;
     };
     apply('INR=X',    cur.INR, prv && prv.INR);
     apply('EURUSD=X', cur.EUR ? 1/cur.EUR : NaN, prv && prv.EUR ? 1/prv.EUR : NaN);
@@ -576,43 +843,69 @@ async function refreshFearGreed(){
 }
 
 /* ============================================================
-   5. RENDER — card grids + sparklines
+   5. MANUAL PAGE REFRESH (⟳ button + "R" key)
+   ============================================================ */
+let manualBusy = false;
+async function manualRefresh(){
+  if(manualBusy) return;
+  manualBusy = true;
+  const btn = document.getElementById('refreshBtn');
+  const txt = btn.querySelector('.btxt');
+  const old = txt.textContent;
+  btn.classList.add('busy');
+  txt.textContent = 'Refreshing…';
+  try{
+    await Promise.all([refreshQuotes(), refreshFearGreed(), refreshFXReference()]);
+  } finally {
+    manualBusy = false;
+    btn.classList.remove('busy');
+    txt.textContent = old;
+    renderBlockTimes();
+    updateFeedStatus();
+  }
+}
+
+/* ============================================================
+   6. RENDER — 3D tile tables + sparklines
    ============================================================ */
 let sparkCharts = {};
-const GROUP_GRID = {indian:'indianGrid', global:'globalGrid', commodity:'commodityGrid', bond:'bondGrid', currency:'currencyGrid'};
+const GROUP_TABLE = {indian:'tb-indian', global:'tb-global', commodity:'tb-commodity', bond:'tb-bond', currency:'tb-currency'};
 
-function renderGrid(gridId, symbols, prefix){
-  const container = document.getElementById(gridId);
-  container.innerHTML = '';
-  symbols.forEach(sym=>{
-    const def = DEF[sym];
-    const it = ITEMS[sym];
-    const id = prefix+'-'+sym.replace(/[^A-Z0-9]/gi,'');
-    const has = it && isFinite(it.value);
-    const stale = has && (Date.now()-it.updated > STALE_MS);
-    const tc = has ? trendClass(it.change) : 'flat';
-    const card = document.createElement('div');
-    card.className = 'card' + (stale?' stale':'');
-    card.innerHTML = has ? `
-      <div class="card-head">
-        <span class="card-name">${def.name}</span>
-        <span class="badge ${tc}">${arrow(it.change)} ${Math.abs(it.pct).toFixed(2)}%</span>
-      </div>
-      <div class="card-value">${fmt(it.value, def.dec)}${def.unit||''}</div>
-      <div class="card-change ${tc}">${it.change>=0?'+':''}${fmt(it.change, def.dec)} today</div>
-      <div class="spark-wrap"><canvas id="${id}"></canvas></div>
-      <div class="card-src">${it.src||''}${stale?' · stale':''}</div>
-    ` : `
-      <div class="card-head">
-        <span class="card-name">${def.name}</span>
-        <span class="badge flat">· · ·</span>
-      </div>
-      <div class="card-value">—</div>
-      <div class="card-change na">awaiting live feed</div>
-      <div class="spark-wrap"></div>
-    `;
-    container.appendChild(card);
-    if(has && it.hist && it.hist.length>1) drawSpark(id, it.hist, tc);
+function renderTables(){
+  Object.values(sparkCharts).forEach(c=>{ try{ c.destroy(); }catch(e){} });
+  sparkCharts = {};
+  Object.entries(GROUP_TABLE).forEach(([group, tbId])=>{
+    const tbody = document.getElementById(tbId);
+    if(!tbody) return;
+    const syms = Object.keys(DEF).filter(s=>DEF[s].group===group);
+    const locale = group==='indian' ? 'en-IN' : 'en-US';   // ₹ uses Indian grouping, world uses western
+    tbody.innerHTML = '';
+    syms.forEach(sym=>{
+      const def = DEF[sym];
+      const it = ITEMS[sym];
+      const id = 'sp-'+group+'-'+sym.replace(/[^A-Z0-9]/gi,'');
+      const has = it && isFinite(it.value);
+      const stale = has && (Date.now()-it.updated > STALE_MS);
+      const tc = has ? trendClass(it.change) : 'flat';
+      const tr = document.createElement('tr');
+      if(has && it.flash){ tr.classList.add('flash-'+it.flash); it.flash = null; }
+      if(stale) tr.classList.add('stale');
+      tr.innerHTML = has ? `
+        <td class="cname" title="${sym}">${def.name}</td>
+        <td class="num ltp">${fmtL(it.value, def.dec, locale)}${def.unit||''}</td>
+        <td class="num chg ${tc}">${it.change>=0?'+':''}${fmtL(it.change, def.dec, locale)}</td>
+        <td class="num"><span class="pct-badge ${tc}">${arrow(it.change)} ${Math.abs(it.pct).toFixed(2)}%</span></td>
+        <td class="spark-cell"><div class="spark-wrap"><canvas id="${id}"></canvas></div></td>
+      ` : `
+        <td class="cname" title="${sym}">${def.name}</td>
+        <td class="num ltp dim">—</td>
+        <td class="num chg dim">·</td>
+        <td class="num"><span class="pct-badge flat">···</span></td>
+        <td class="spark-cell"><span class="await">awaiting live feed</span></td>
+      `;
+      tbody.appendChild(tr);
+      if(has && it.hist && it.hist.length>1) drawSpark(id, it.hist, tc);
+    });
   });
 }
 
@@ -621,10 +914,9 @@ function drawSpark(id, data, tc){
   if(!el) return;
   const ctx = el.getContext('2d');
   const color = tc==='down' ? '#ef4444' : (tc==='up' ? '#22c55e' : '#8b93a7');
-  const gradient = ctx.createLinearGradient(0,0,0,42);
+  const gradient = ctx.createLinearGradient(0,0,0,36);
   gradient.addColorStop(0, tc==='down' ? 'rgba(239,68,68,0.35)' : 'rgba(34,197,94,0.35)');
   gradient.addColorStop(1, 'rgba(0,0,0,0)');
-  if(sparkCharts[id]) sparkCharts[id].destroy();
   sparkCharts[id] = new Chart(ctx,{
     type:'line',
     data:{ labels:data.map((_,i)=>i), datasets:[{
@@ -641,7 +933,40 @@ function drawSpark(id, data, tc){
 }
 
 /* ============================================================
-   6. GAUGES
+   7. PER-BLOCK "UPDATED AT" CHIPS
+   ============================================================ */
+const CHIP_DEFS = [
+  {id:'upd-indian',    ts:()=>blockUpdated.indian},
+  {id:'upd-global',    ts:()=>blockUpdated.global},
+  {id:'upd-commodity', ts:()=>blockUpdated.commodity},
+  {id:'upd-bond',      ts:()=>blockUpdated.bond},
+  {id:'upd-currency',  ts:()=>blockUpdated.currency},
+  {id:'upd-vix',       ts:()=>blockUpdated.vix},
+  {id:'upd-uvix',      ts:()=>blockUpdated.uvix},
+  {id:'upd-breadth',   ts:()=>lastQuotesAt || null},
+  {id:'upd-fg',        ts:()=>fg ? fg.updated : null},
+  {id:'upd-history',   ts:()=>fg ? fg.updated : null},
+];
+function renderBlockTimes(){
+  const now = Date.now();
+  CHIP_DEFS.forEach(c=>{
+    const el = document.getElementById(c.id);
+    if(!el) return;
+    const iv = (c.id==='upd-fg' || c.id==='upd-history') ? FG_MS : QUOTE_MS;
+    const ts = c.ts();
+    if(!ts){
+      el.className = 'chip upd';
+      el.innerHTML = '<span class="udot"></span> waiting…';
+      return;
+    }
+    const fresh = now - ts < Math.max(iv*2.5, STALE_MS);
+    el.className = 'chip upd ' + (fresh ? 'ok' : 'warn');
+    el.innerHTML = '<span class="udot"></span> updated ' + new Date(ts).toLocaleTimeString('en-IN',{hour12:false});
+  });
+}
+
+/* ============================================================
+   8. GAUGES
    ============================================================ */
 function setGauge(needleId, valId, labelId, value, min, max, labels){
   const pct = Math.min(1, Math.max(0, (value-min)/(max-min)));
@@ -691,7 +1016,7 @@ function updateGauges(){
 }
 
 /* ============================================================
-   7. FEAR & GREED HISTORY CHART + STATS
+   9. FEAR & GREED HISTORY CHART + STATS
    ============================================================ */
 let fgChartInstance;
 function renderFGChart(){
@@ -731,7 +1056,7 @@ function renderFGChart(){
 }
 
 /* ============================================================
-   8. MARKET STATUS STRIP
+   10. MARKET STATUS STRIP
    ============================================================ */
 const marketsTZ = [
   {name:'India (NSE)', openUTC:3.75, closeUTC:10.0},
@@ -757,7 +1082,7 @@ function renderStatusStrip(){
 }
 
 /* ============================================================
-   9. MOOD BADGE + FEED STATUS + CLOCK
+   11. MOOD BADGE + FEED STATUS + CLOCK
    ============================================================ */
 function updateMood(){
   const all = Object.entries(ITEMS).filter(([k,v])=>DEF[k] && DEF[k].group!=='gauge' && isFinite(v.pct));
@@ -804,32 +1129,32 @@ function tickClock(){
 }
 
 /* ============================================================
-   10. RENDER ALL + SCHEDULERS (pause when tab is hidden)
+   12. RENDER ALL + SCHEDULERS (pause when tab is hidden)
    ============================================================ */
 function renderAll(){
-  Object.entries(GROUP_GRID).forEach(([group, gridId])=>{
-    const syms = Object.keys(DEF).filter(s=>DEF[s].group===group);
-    renderGrid(gridId, syms, group);
-  });
+  renderTables();
   updateGauges();
   renderFGChart();
   updateMood();
   updateFeedStatus();
   renderStatusStrip();
+  renderBlockTimes();
 }
-
-const QUOTE_MS = 30000, FG_MS = 600000, FXREF_MS = 1800000;
 
 async function init(){
   renderAll();
   tickClock();
   refreshQuotes().then(refreshFearGreed);
   setTimeout(refreshFXReference, 8000);        // give Yahoo FX a head start
+  document.getElementById('refreshBtn').addEventListener('click', manualRefresh);
+  document.addEventListener('keydown', e=>{
+    if((e.key==='r' || e.key==='R') && !e.ctrlKey && !e.metaKey && !e.altKey) manualRefresh();
+  });
   setInterval(tickClock, 1000);
   setInterval(()=>{ if(!document.hidden) refreshQuotes(); },      QUOTE_MS);
   setInterval(()=>{ if(!document.hidden) refreshFearGreed(); },   FG_MS);
   setInterval(()=>{ if(!document.hidden) refreshFXReference(); }, FXREF_MS);
-  setInterval(()=>{ if(!document.hidden) updateFeedStatus(); },   5000);
+  setInterval(()=>{ if(!document.hidden){ updateFeedStatus(); renderBlockTimes(); } }, 5000);
   document.addEventListener('visibilitychange', ()=>{
     if(!document.hidden && Date.now()-lastQuotesAt > QUOTE_MS) refreshQuotes();
   });

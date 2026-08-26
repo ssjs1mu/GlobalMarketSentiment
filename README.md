@@ -1,23 +1,41 @@
-# 📊 Global Market Sentiment Tracker — Live
+# 📊 JC's Market Sentiment Tracker — Live
 
-A single-page, zero-build, live-updating market sentiment dashboard.
-Open `index.html` in any browser, or use the GitHub Pages deployment below.
+A single-page, zero-build, live-updating market sentiment dashboard with an
+**attractive 3D-tile design** — data blocks render as glossy, extruded tiles
+containing side-by-side tables (stacked automatically when the page margin is
+narrow). Open `index.html` in any browser, or use the GitHub Pages deployment
+below.
 
 **Live site:** https://ssjs1mu.github.io/GlobalMarketSentiment/
 
-## What's live (auto-refreshing)
+## Refresh model
 
-| Section | Source | Refresh |
+- **⟳ Refresh Now button** in the header (or press **R**) refreshes *all* live
+  feeds on demand — spinning icon while the fetch runs.
+- **Every block shows its own auto-refresh interval** as a chip, plus a
+  live **"updated HH:MM:SS"** chip that turns amber when a block goes stale.
+
+| Block | Source | Auto-refresh |
 |---|---|---|
-| Indian markets (Nifty 50, Bank Nifty, Sensex, Midcap, Fin Services, IT, heavyweight stocks) | Yahoo Finance public quote API (`v7/finance/spark`, batched) | every 30 s |
-| Global indices & futures (ES/NQ/YM/RTY, FTSE, DAX, CAC, Euro Stoxx, Nikkei, Hang Seng, Shanghai, ASX, KOSPI) | Yahoo Finance | every 30 s |
-| Commodities (Gold, Silver, WTI, Brent, NatGas, Copper, Platinum, Bitcoin) | Yahoo Finance | every 30 s |
-| US Treasury yields (13W, 5Y, 10Y, 30Y) | Yahoo Finance (^IRX/^FVX/^TNX/^TYX) | every 30 s |
-| Currencies (USD/INR, DXY, EUR/USD, GBP/USD, USD/JPY, USD/CNY) | Yahoo Finance, with ECB/Frankfurter reference fallback | every 30 s / 30 min |
+| Indian markets table (Nifty 50, Bank Nifty, Sensex, Midcap, Fin Services, IT, heavyweight stocks) | Yahoo Finance public quote API (`v7/finance/spark`, batched) | every 30 s |
+| Global indices & futures table (ES/NQ/YM/RTY, FTSE, DAX, CAC, Euro Stoxx, Nikkei, Hang Seng, Shanghai, ASX, KOSPI) | Yahoo Finance | every 30 s |
+| Commodities table (Gold, Silver, WTI, Brent, NatGas, Copper, Platinum, Bitcoin) | Yahoo Finance | every 30 s |
+| US Treasury yields table (13W, 5Y, 10Y, 30Y) | Yahoo Finance (^IRX/^FVX/^TNX/^TYX) | every 30 s |
+| Currencies table (USD/INR, DXY, EUR/USD, GBP/USD, USD/JPY, USD/CNY) | Yahoo Finance, with ECB/Frankfurter reference fallback | every 30 s / 30 min |
 | Fear & Greed gauge + 30-day history | CNN Business Fear & Greed feed | every 10 min |
 | India VIX & CBOE VIX gauges | Yahoo Finance | every 30 s |
 | Market breadth gauge & mood badge | computed from the live quotes | every 30 s |
 | Ticker tape | TradingView widget (independent live redundancy) | continuous |
+
+## Layout & design
+
+- Each data block is a **3D tile**: layered gradients, bevel highlights,
+  extruded keycap-style edges, accent glow, hover lift and per-row price-change
+  flash (green/red).
+- Tables sit **side by side on wide screens** (2-up for the big tables,
+  3-up for the smaller ones) and **stack vertically on narrow screens**.
+- Table columns: Instrument · Last · Change · Change % · 1-day sparkline trend.
+- Each gauge/history block carries its own refresh-interval chip too.
 
 ## Resilience (no fake data)
 
@@ -26,7 +44,7 @@ Open `index.html` in any browser, or use the GitHub Pages deployment below.
    (`corsproxy.io` → `allorigins` → `codetabs` → Yahoo secondary host),
    remembering the last relay that worked per feed.
 2. If every transport fails, the last known value is kept and flagged **amber
-   (stale)**; cards that never received data show a neutral "awaiting live feed"
+   (stale)**; rows that never received data show a neutral "awaiting live feed"
    state. No random/simulated numbers are ever displayed.
 3. Pauses polling while the tab is hidden and resumes on focus.
 
