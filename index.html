@@ -37,13 +37,15 @@ body{
 
 /* ---------- HEADER ---------- */
 header.top{
+  position:sticky;top:12px;z-index:50;
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
-  padding:18px 26px;border-radius:22px;
-  background:linear-gradient(120deg,rgba(99,102,241,0.18),rgba(6,182,212,0.14),rgba(236,72,153,0.12));
+  padding:16px 24px;border-radius:22px;
+  background:linear-gradient(120deg,rgba(99,102,241,0.22),rgba(6,182,212,0.16),rgba(236,72,153,0.14));
   border:1px solid var(--card-border);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.12), 0 6px 0 -2px #070a16, 0 18px 40px rgba(0,0,0,0.45);
-  backdrop-filter:blur(14px);
-  margin-bottom:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.15), 0 6px 0 -2px #070a16, 0 18px 40px rgba(0,0,0,0.55);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  margin-bottom:18px;
 }
 .logo{display:flex;align-items:center;gap:12px;}
 .logo .icon{
@@ -194,6 +196,61 @@ header.top{
 .tv-tile .tile-title h3{font-size:13.5px;}
 .tv-body{padding:4px 6px 6px;background:rgba(10,14,26,0.5);}
 
+/* ---------- SECTION HEADINGS ---------- */
+.section-head{
+  display:flex;align-items:center;gap:14px;margin:28px 0 16px;
+}
+.section-head:first-of-type{margin-top:6px;}
+.section-head h2{
+  font-family:'Poppins';font-weight:800;font-size:18px;letter-spacing:.3px;color:#fff;
+  display:flex;align-items:center;gap:10px;white-space:nowrap;
+}
+.section-head h2 .sh-ico{
+  width:32px;height:32px;border-radius:10px;
+  background:linear-gradient(135deg,var(--ind1),var(--ind2));
+  display:inline-flex;align-items:center;justify-content:center;font-size:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.4),0 3px 0 rgba(7,10,22,0.9),0 8px 16px rgba(99,102,241,0.4);
+}
+.section-head p{font-size:12.5px;color:var(--text-dim);margin:0;}
+.section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.18),rgba(255,255,255,0.02));}
+
+/* ---------- TOP MOVERS STRIP ---------- */
+.movers{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:22px;
+}
+.mover-card{
+  position:relative;border-radius:18px;padding:14px 18px;
+  background:linear-gradient(150deg,#1a2140,#101529);
+  border:1px solid var(--card-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 5px 0 -1px #070a16,0 12px 24px rgba(0,0,0,0.4);
+  overflow:hidden;
+}
+.mover-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.mover-card.up::before{background:linear-gradient(90deg,#22c55e,#86efac);}
+.mover-card.down::before{background:linear-gradient(90deg,#ef4444,#fca5a5);}
+.mover-card .mv-label{
+  font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:800;
+  color:var(--text-dim);margin-bottom:8px;display:flex;align-items:center;gap:8px;
+}
+.mover-card.up .mv-label b{color:#4ade80;}
+.mover-card.down .mv-label b{color:#f87171;}
+.mover-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px;}
+.mover-item{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  font-size:13px;padding:6px 0;border-top:1px solid rgba(255,255,255,0.05);
+}
+.mover-item:first-child,.mover-item:nth-child(2),.mover-item:nth-child(3){border-top:none;}
+.mover-item .mv-name{color:#dfe3ee;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mover-item .mv-pct{font-family:'Poppins';font-weight:700;font-size:13px;white-space:nowrap;}
+.mover-card.up .mv-pct{color:#4ade80;}
+.mover-card.down .mv-pct{color:#f87171;}
+.mover-empty{font-size:12px;color:var(--text-dim);font-style:italic;}
+@media(max-width:720px){
+  .movers{grid-template-columns:1fr;}
+  .mover-list{grid-template-columns:repeat(2,1fr);}
+}
+
 /* ---------- MARKET STATUS STRIP ---------- */
 .status-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
 .status-pill{
@@ -210,12 +267,15 @@ header.top{
 
 /* ---------- TABLES BOARD — side by side or stacked as margin allows ---------- */
 .tables-board{
-  display:grid;grid-template-columns:repeat(12,1fr);gap:24px;
+  display:grid;grid-template-columns:repeat(12,1fr);gap:22px;
   margin-bottom:26px;align-items:stretch;
 }
 .tables-board > .tile{grid-column:span 12;}
 @media(min-width:780px){
   .tables-board > .s-md-6{grid-column:span 6;}
+}
+@media(min-width:960px){
+  .tables-board > .s-lg-6{grid-column:span 6;}
 }
 @media(min-width:1200px){
   .tables-board > .s-lg-6{grid-column:span 6;}
@@ -228,12 +288,18 @@ header.top{
 .tables-board > .tile:nth-child(5){animation-delay:.26s;}
 
 /* ---------- DATA TABLES ---------- */
-.mtable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.mtable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;table-layout:fixed;}
+.mtable col.col-name{width:42%;}
+.mtable col.col-last{width:16%;}
+.mtable col.col-chg{width:13%;}
+.mtable col.col-pct{width:12%;}
+.mtable col.col-spark{width:17%;}
 .mtable thead th{
   font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:#98a0b6;font-weight:700;
-  text-align:left;padding:9px 14px;
+  text-align:left;padding:10px 14px 8px;
   background:rgba(255,255,255,0.025);
   border-bottom:1px solid rgba(255,255,255,0.09);
+  position:sticky;top:0;backdrop-filter:blur(6px);
 }
 .mtable th.num,.mtable td.num{text-align:right;}
 .mtable tbody td{
@@ -247,40 +313,49 @@ header.top{
 }
 .mtable tbody tr:nth-child(even){background:rgba(255,255,255,0.03);}
 .mtable tbody tr:hover{
-  background:linear-gradient(90deg, rgba(99,102,241,0.10), transparent 75%);
   background:linear-gradient(90deg, color-mix(in srgb, var(--acc1) 13%, transparent), transparent 75%);
 }
-.cname{font-weight:500;color:#dfe3ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+.cname{font-weight:500;color:#dfe3ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ltp{font-family:'Poppins';font-size:14px;font-weight:600;color:#fff;white-space:nowrap;}
 tr.stale .ltp{color:var(--amber);}
 .chg{font-weight:600;white-space:nowrap;}
 .chg.up{color:var(--green);}
 .chg.down{color:var(--red);}
 .chg.flat,.dim{color:var(--text-dim);}
-.pct-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.pct-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;display:inline-block;}
 .pct-badge.up{background:rgba(34,197,94,0.16);color:#4ade80;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);}
 .pct-badge.down{background:rgba(239,68,68,0.16);color:#f87171;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12);}
 .pct-badge.flat{background:rgba(139,147,167,0.15);color:var(--text-dim);}
-.spark-cell{width:142px;}
-.spark-wrap{width:132px;height:36px;margin-left:auto;}
+.spark-cell{text-align:right;}
+.spark-wrap{width:100%;max-width:140px;height:34px;margin-left:auto;}
 .await{font-size:10.5px;color:var(--text-dim);font-style:italic;}
 @keyframes flashUp{0%{background-color:rgba(34,197,94,0.30);}100%{background-color:transparent;}}
 @keyframes flashDown{0%{background-color:rgba(239,68,68,0.30);}100%{background-color:transparent;}}
 tr.flash-up td{animation:flashUp 1.3s ease-out;}
 tr.flash-down td{animation:flashDown 1.3s ease-out;}
+@media(max-width:780px){
+  .mtable col.col-name{width:38%;}
+  .mtable col.col-last{width:18%;}
+  .mtable col.col-chg{width:0;}
+  .mtable th.chgcol,.mtable td.chg{display:none;}
+}
 @media(max-width:620px){
   .mtable th.sparkcol,.mtable td.spark-cell{display:none;}
-  .cname{max-width:130px;}
-  .mtable tbody td,.mtable thead th{padding:8px 9px;}
+  .mtable col.col-pct{width:20%;}
+  .mtable tbody td,.mtable thead th{padding:8px 10px;}
+  .ltp{font-size:13px;}
+  .cname{max-width:unset;}
 }
 
 /* ---------- SENTIMENT GAUGES ---------- */
 .gauge-row{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));
-  gap:24px;margin-bottom:26px;
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:20px;margin-bottom:26px;
 }
-.gauge-tile .gauge-body{padding:16px 16px 20px;text-align:center;}
-.gauge{width:200px;height:100px;position:relative;margin:14px auto 0;}
+@media(max-width:1100px){ .gauge-row{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media(max-width:560px){  .gauge-row{grid-template-columns:1fr; gap:16px;} }
+.gauge-tile .gauge-body{padding:14px 16px 18px;text-align:center;}
+.gauge{width:210px;height:105px;position:relative;margin:12px auto 0;max-width:100%;}
 .gauge-bg{
   width:200px;height:100px;border-radius:100px 100px 0 0;overflow:hidden;
   background:conic-gradient(from 270deg at 50% 100%,
@@ -328,9 +403,24 @@ footer b{color:#c7c9d4;}
 footer a{color:var(--ind2);text-decoration:none;}
 footer a:hover{text-decoration:underline;}
 
-@media(max-width:600px){
-  header.top{flex-direction:column;align-items:flex-start;}
+@media(max-width:760px){
+  header.top{padding:14px 16px;gap:10px;top:8px;border-radius:18px;}
+  .logo h1{font-size:18px;}
+  .logo p{font-size:11px;}
+  .logo .icon{width:40px;height:40px;font-size:19px;border-radius:12px;}
+  .btn3d{padding:9px 14px;font-size:12px;}
+  .head-right{gap:10px;}
+  .app{padding:14px;}
+}
+@media(max-width:560px){
+  header.top{flex-direction:column;align-items:stretch;}
   .head-right{width:100%;justify-content:space-between;}
+  #clock{font-size:13px;}
+  .feed-chip,.mood-badge{font-size:11px;padding:7px 12px;}
+  .section-head h2{font-size:16px;}
+}
+@media(max-width:420px){
+  .logo p{display:none;}
 }
 </style>
 </head>
@@ -397,6 +487,13 @@ footer a:hover{text-decoration:underline;}
 
   <!-- MARKET STATUS -->
   <div class="status-strip" id="statusStrip"></div>
+
+  <!-- SECTION: MARKET PULSE GAUGES -->
+  <div class="section-head">
+    <h2><span class="sh-ico">🧭</span> Market Pulse</h2>
+    <p>Sentiment · volatility · breadth — updated live</p>
+    <span class="sh-rule"></span>
+  </div>
 
   <!-- SENTIMENT GAUGES -->
   <div class="gauge-row">
@@ -466,6 +563,16 @@ footer a:hover{text-decoration:underline;}
     </div>
   </div>
 
+  <!-- SECTION: LIVE MARKETS TABLES -->
+  <div class="section-head">
+    <h2><span class="sh-ico">📈</span> Live Markets</h2>
+    <p>Quotes refresh every 30 s — biggest movers highlighted below</p>
+    <span class="sh-rule"></span>
+  </div>
+
+  <!-- TOP MOVERS (computed live) -->
+  <div class="movers" id="movers"></div>
+
   <!-- LIVE DATA TABLES — side by side when the page margin allows, stacked on narrow screens -->
   <div class="tables-board">
 
@@ -480,7 +587,10 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
       <table class="mtable">
-        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <colgroup>
+          <col class="col-name"><col class="col-last"><col class="col-chg"><col class="col-pct"><col class="col-spark">
+        </colgroup>
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num chgcol">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
         <tbody id="tb-indian"></tbody>
       </table>
     </div>
@@ -496,7 +606,10 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
       <table class="mtable">
-        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <colgroup>
+          <col class="col-name"><col class="col-last"><col class="col-chg"><col class="col-pct"><col class="col-spark">
+        </colgroup>
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num chgcol">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
         <tbody id="tb-global"></tbody>
       </table>
     </div>
@@ -512,7 +625,10 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
       <table class="mtable">
-        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <colgroup>
+          <col class="col-name"><col class="col-last"><col class="col-chg"><col class="col-pct"><col class="col-spark">
+        </colgroup>
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num chgcol">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
         <tbody id="tb-commodity"></tbody>
       </table>
     </div>
@@ -528,7 +644,10 @@ footer a:hover{text-decoration:underline;}
         </div>
       </div>
       <table class="mtable">
-        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <colgroup>
+          <col class="col-name"><col class="col-last"><col class="col-chg"><col class="col-pct"><col class="col-spark">
+        </colgroup>
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num chgcol">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
         <tbody id="tb-bond"></tbody>
       </table>
     </div>
@@ -542,13 +661,23 @@ footer a:hover{text-decoration:underline;}
           <span class="chip rf"><span class="rfi">⟳</span> auto · 30 s <small style="text-transform:none;letter-spacing:0;">(fallback 30 min)</small></span>
           <span class="chip upd" id="upd-currency"><span class="udot"></span> waiting…</span>
         </div>
-        </div>
+      </div>
       <table class="mtable">
-        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
+        <colgroup>
+          <col class="col-name"><col class="col-last"><col class="col-chg"><col class="col-pct"><col class="col-spark">
+        </colgroup>
+        <thead><tr><th>Instrument</th><th class="num">Last</th><th class="num chgcol">Chg</th><th class="num">Chg %</th><th class="sparkcol">1-Day Trend</th></tr></thead>
         <tbody id="tb-currency"></tbody>
       </table>
     </div>
 
+  </div>
+
+  <!-- SECTION: SENTIMENT HISTORY -->
+  <div class="section-head">
+    <h2><span class="sh-ico">📉</span> Sentiment Trend</h2>
+    <p>Fear &amp; Greed 30-day history</p>
+    <span class="sh-rule"></span>
   </div>
 
   <!-- SENTIMENT HISTORY -->
@@ -871,6 +1000,31 @@ async function manualRefresh(){
 let sparkCharts = {};
 const GROUP_TABLE = {indian:'tb-indian', global:'tb-global', commodity:'tb-commodity', bond:'tb-bond', currency:'tb-currency'};
 
+/* ---------- TOP MOVERS ---------- */
+function renderMovers(){
+  const host = document.getElementById('movers');
+  if(!host) return;
+  const items = Object.entries(ITEMS)
+    .filter(([sym,it])=>DEF[sym] && DEF[sym].group!=='gauge' && isFinite(it.pct) && isFinite(it.value))
+    .map(([sym,it])=>({sym, name:DEF[sym].name, pct:it.pct}));
+  const mkCard = (cls, label, list) => {
+    const inner = list.length===0
+      ? `<div class="mover-empty">Awaiting live feed…</div>`
+      : `<div class="mover-list">${list.map(m=>`
+            <div class="mover-item">
+              <span class="mv-name" title="${m.name}">${m.name}</span>
+              <span class="mv-pct">${m.pct>=0?'+':''}${m.pct.toFixed(2)}%</span>
+            </div>`).join('')}</div>`;
+    return `<div class="mover-card ${cls}">
+      <div class="mv-label">${cls==='up'?'🟢':'🔴'} <b>${label}</b></div>
+      ${inner}
+    </div>`;
+  };
+  const ups  = [...items].filter(m=>m.pct>0).sort((a,b)=>b.pct-a.pct).slice(0,6);
+  const downs=[...items].filter(m=>m.pct<0).sort((a,b)=>a.pct-b.pct).slice(0,6);
+  host.innerHTML = mkCard('up',   'Top Gainers', ups) + mkCard('down', 'Top Losers',  downs);
+}
+
 function renderTables(){
   Object.values(sparkCharts).forEach(c=>{ try{ c.destroy(); }catch(e){} });
   sparkCharts = {};
@@ -1132,6 +1286,7 @@ function tickClock(){
    12. RENDER ALL + SCHEDULERS (pause when tab is hidden)
    ============================================================ */
 function renderAll(){
+  renderMovers();
   renderTables();
   updateGauges();
   renderFGChart();
