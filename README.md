@@ -29,13 +29,21 @@ below.
 
 ## Layout & design
 
-- Each data block is a **3D tile**: layered gradients, bevel highlights,
-  extruded keycap-style edges, accent glow, hover lift and per-row price-change
-  flash (green/red).
-- Tables sit **side by side on wide screens** (2-up for the big tables,
-  3-up for the smaller ones) and **stack vertically on narrow screens**.
-- Table columns: Instrument · Last · Change · Change % · 1-day sparkline trend.
-- Each gauge/history block carries its own refresh-interval chip too.
+- **Sticky 3D glass header** — the logo, refresh button, clock, live-feed status chip and
+  sentiment mood badge stay visible as you scroll, with a frosted backdrop blur.
+- Clearly labeled sections (**Market Pulse** gauges · **Live Markets** tables with a **Top
+  Gainers / Top Losers** movers strip computed live from every quote · **Sentiment Trend**
+  history) with accent dividers for fast visual scanning.
+- Each data block is a **3D tile**: layered gradients, bevel highlights, extruded keycap-style
+  edges, accent glow, hover lift and per-row price-change flash (green/red).
+- Tables sit **side by side on wide screens** (2-up for the big tables, 3-up for the smaller
+  ones), collapse to 2-up on tablets and **stack vertically on narrow phones**; on small
+  screens the non-essential "Chg" column gracefully hides and sparklines drop away so price
+  and percent change always stay readable.
+- Table columns use fixed layouts (Instrument · Last · Chg · Chg % · 1-day sparkline trend)
+  with tabular numerals so prices don't jitter between updates.
+- The four sentiment gauges (Fear & Greed, India VIX, CBOE VIX, Market Breadth) form a
+  responsive 4/2/1 grid.
 
 ## Resilience (no fake data)
 
